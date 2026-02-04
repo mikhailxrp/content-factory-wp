@@ -1,0 +1,379 @@
+/**
+ * Content Factory UI - Admin Styles
+ */
+
+.cf-ui-wrap {
+  max-width: 1200px;
+}
+
+.cf-ui-container {
+  background: #fff;
+  border: 1px solid #ccd0d4;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+  margin: 20px 0;
+  padding: 20px;
+}
+
+.cf-ui-loading {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.cf-ui-loading .spinner {
+  float: none;
+  margin: 0 auto 10px;
+}
+
+/* Форма */
+.cf-ui-form {
+  max-width: 800px;
+}
+
+.cf-ui-form .form-table th {
+  width: 200px;
+}
+
+/* Списки */
+.cf-ui-list {
+  margin: 20px 0;
+}
+
+.cf-ui-list-item {
+  background: #f9f9f9;
+  border-left: 4px solid #2271b1;
+  padding: 15px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.cf-ui-list-item:hover {
+  background: #f0f0f0;
+}
+
+.cf-ui-list-item.active {
+  background: #e8f4f8;
+  border-left-color: #0073aa;
+}
+
+.cf-ui-list-item h3 {
+  margin: 0 0 5px;
+  font-size: 16px;
+}
+
+.cf-ui-list-item p {
+  margin: 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.cf-ui-list-item .cf-ui-meta {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #999;
+}
+
+/* Детали */
+.cf-ui-detail {
+  border-top: 2px solid #2271b1;
+  padding-top: 20px;
+  margin-top: 20px;
+}
+
+.cf-ui-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.cf-ui-detail-header h2 {
+  margin: 0;
+}
+
+.cf-ui-detail-content {
+  line-height: 1.6;
+}
+
+/* Inline Detail (Accordion) */
+.cf-ui-detail-inline {
+  background: #fff;
+  border: 1px solid #c3c4c7;
+  border-top: 3px solid #2271b1;
+  margin: 0 0 10px 0;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.cf-ui-detail-inline-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.cf-ui-detail-inline-header h3 {
+  margin: 0;
+  font-size: 18px;
+  color: #1d2327;
+  flex: 1;
+  padding-right: 15px;
+}
+
+.cf-ui-detail-close {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  color: #646970;
+  font-size: 20px;
+  line-height: 1;
+  transition: color 0.2s;
+  flex-shrink: 0;
+}
+
+.cf-ui-detail-close:hover {
+  color: #dc3232;
+}
+
+.cf-ui-detail-close .dashicons {
+  width: 20px;
+  height: 20px;
+  font-size: 20px;
+}
+
+.cf-ui-detail-inline-content {
+  line-height: 1.6;
+}
+
+.cf-ui-detail-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-bottom: 15px;
+  padding: 10px;
+  background: #f6f7f7;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.cf-ui-detail-meta span {
+  color: #50575e;
+}
+
+.cf-ui-detail-meta strong {
+  color: #1d2327;
+  font-weight: 600;
+}
+
+.cf-ui-detail-section {
+  margin-bottom: 15px;
+}
+
+.cf-ui-detail-section h4 {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1d2327;
+}
+
+.cf-ui-detail-section p {
+  margin: 0;
+  color: #50575e;
+  font-size: 14px;
+}
+
+.cf-ui-detail-small {
+  font-size: 12px !important;
+  color: #787c82 !important;
+  margin-top: 5px !important;
+}
+
+.cf-ui-detail-date {
+  margin-top: 15px;
+  padding-top: 10px;
+  border-top: 1px solid #e0e0e0;
+  color: #787c82;
+  font-size: 12px;
+}
+
+.cf-ui-detail-actions {
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid #e0e0e0;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.cf-ui-detail-actions .button {
+  margin: 0;
+}
+
+/* Toolbar */
+.cf-ui-toolbar {
+  margin-bottom: 15px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #ddd;
+}
+
+.cf-ui-toolbar-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.cf-ui-toolbar-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex: 1;
+}
+
+.cf-ui-toolbar-group label {
+  margin: 0;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.cf-ui-select {
+  min-width: 200px;
+  max-width: 400px;
+  padding: 6px 10px;
+  border: 1px solid #8c8f94;
+  border-radius: 4px;
+  background: #fff;
+  font-size: 14px;
+}
+
+/* Notice */
+.cf-ui-notice {
+  padding: 12px;
+  margin: 20px 0;
+  border-left: 4px solid;
+}
+
+.cf-ui-notice.success {
+  background: #ecf7ed;
+  border-color: #46b450;
+  color: #155724;
+}
+
+.cf-ui-notice.error {
+  background: #fef7f1;
+  border-color: #dc3232;
+  color: #721c24;
+}
+
+.cf-ui-notice.info {
+  background: #e5f5fa;
+  border-color: #00a0d2;
+  color: #004085;
+}
+
+/* Telegram Preview */
+.cf-ui-tg-text {
+  background: #f9f9f9;
+  border: 1px solid #ddd;
+  padding: 15px;
+  border-radius: 4px;
+  white-space: pre-wrap;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.5;
+  max-width: 600px;
+}
+
+/* Логи */
+.cf-ui-logs-list {
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.cf-ui-log-item {
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-family: "Courier New", monospace;
+  font-size: 12px;
+}
+
+.cf-ui-log-item.log-request {
+  border-left: 4px solid #2271b1;
+}
+
+.cf-ui-log-item.log-response {
+  border-left: 4px solid #46b450;
+}
+
+.cf-ui-log-item.log-error {
+  border-left: 4px solid #dc3232;
+  background: #fef7f1;
+}
+
+.cf-ui-log-item .log-timestamp {
+  color: #999;
+  font-size: 11px;
+  margin-bottom: 5px;
+}
+
+.cf-ui-log-item .log-details {
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+/* Status badges */
+.cf-ui-status {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 3px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.cf-ui-status.status-draft {
+  background: #f0f0f1;
+  color: #646970;
+}
+
+.cf-ui-status.status-pending {
+  background: #fcf9e8;
+  color: #996800;
+}
+
+.cf-ui-status.status-published {
+  background: #ecf7ed;
+  color: #155724;
+}
+
+.cf-ui-status.status-error {
+  background: #fef7f1;
+  color: #721c24;
+}
+
+/* Responsive */
+@media (max-width: 782px) {
+  .cf-ui-wrap {
+    margin: 0 -20px;
+  }
+
+  .cf-ui-container {
+    border-left: 0;
+    border-right: 0;
+  }
+
+  .cf-ui-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .cf-ui-detail-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+}

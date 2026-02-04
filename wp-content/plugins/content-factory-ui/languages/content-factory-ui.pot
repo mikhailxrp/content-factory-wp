@@ -1,0 +1,52 @@
+# Content Factory UI POT File
+# Copyright (C) 2024
+# This file is distributed under the same license as the Content Factory UI package.
+
+msgid ""
+msgstr ""
+"Project-Id-Version: Content Factory UI 1.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-01-01 00:00+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: content-factory-ui.php
+msgid "Content Factory"
+msgstr ""
+
+#: src/Admin/Menu.php
+msgid "Ниша и ЦА"
+msgstr ""
+
+msgid "Смыслы"
+msgstr ""
+
+msgid "Темы"
+msgstr ""
+
+msgid "Статьи"
+msgstr ""
+
+msgid "Telegram"
+msgstr ""
+
+msgid "Логи"
+msgstr ""
+
+msgid "Настройки"
+msgstr ""
+
+#: src/Admin/Views
+msgid "Загрузка..."
+msgstr ""
+
+msgid "Ошибка"
+msgstr ""
+
+msgid "Успешно"
+msgstr ""
