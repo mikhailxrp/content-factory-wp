@@ -638,6 +638,9 @@
               <button type="button" class="button button-primary cf-generate-article-btn" data-topic-id="${item.topic_candidate_id}">
                 Сгенерировать статью
               </button>
+              <button type="button" class="button cf-goto-article-btn" data-topic-id="${item.topic_candidate_id}">
+                Перейти к статье
+              </button>
             </div>
           </div>
         `;
@@ -964,6 +967,11 @@
       this.apiRequest(`topics/${topicId}/generate-article`, "POST")
         .done((response) => {
           console.log("generateArticleFromTopic: получен ответ", response);
+          console.log("generateArticleFromTopic: response.data", response.data);
+          console.log(
+            "generateArticleFromTopic: полный ответ от n8n:",
+            JSON.stringify(response, null, 2),
+          );
 
           if (response.success) {
             this.showNotice(
