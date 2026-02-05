@@ -606,6 +606,10 @@
         const score = item.topic_score || 0;
         const status = item.status || "";
         const date = item.topic_created_at || "";
+        const wpPostLink = item.wp_post_link || "";
+
+        // Проверяем, есть ли готовая статья (статус draft и есть ссылка)
+        const hasArticle = status === "draft" && wpPostLink;
 
         let html = `
           <div class="cf-ui-detail-inline-header">
@@ -638,8 +642,8 @@
               <button type="button" class="button button-primary cf-generate-article-btn" data-topic-id="${item.topic_candidate_id}">
                 Сгенерировать статью
               </button>
-              <button type="button" class="button cf-goto-article-btn" data-topic-id="${item.topic_candidate_id}">
-                Перейти к статье
+              <button type="button" class="button cf-goto-article-btn" data-topic-id="${item.topic_candidate_id}" ${hasArticle ? "" : "disabled"} data-post-link="${hasArticle ? this.escapeHtml(wpPostLink) : ""}">
+                ${hasArticle ? "Перейти к статье" : "Перейти к статье"}
               </button>
             </div>
           </div>
@@ -661,6 +665,14 @@
         $container.find(".cf-generate-article-btn").on("click", function () {
           const topicId = $(this).data("topic-id");
           cfUI.generateArticleFromTopic(topicId);
+        });
+
+        // Добавляем обработчик для кнопки "Перейти к статье"
+        $container.find(".cf-goto-article-btn").on("click", function () {
+          const postLink = $(this).data("post-link");
+          if (postLink) {
+            window.open(postLink, "_blank");
+          }
         });
 
         return;
