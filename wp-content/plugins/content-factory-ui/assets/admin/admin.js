@@ -961,6 +961,7 @@
       }
 
       const $btn = $(`.cf-generate-article-btn[data-topic-id="${topicId}"]`);
+      const $gotoBtn = $(`.cf-goto-article-btn[data-topic-id="${topicId}"]`);
       const originalText = $btn.text();
       $btn.prop("disabled", true).text("Генерация...");
 
@@ -973,7 +974,11 @@
             JSON.stringify(response, null, 2),
           );
 
-          if (response.success) {
+          if (response.success && response.data?.status === "started") {
+            this.showNotice("Генерация статьи запущена в фоне", "success");
+            // Деактивируем кнопку "Перейти к статье"
+            $gotoBtn.prop("disabled", true).text("Генерация в процессе...");
+          } else if (response.success) {
             this.showNotice(
               response.message || "Статья генерируется",
               "success",

@@ -191,7 +191,7 @@ class TopicsController {
     }
 
     $client = new Client();
-    $client->set_timeout(300); // 5 минут для генерации статьи
+    // n8n возвращает ответ сразу, генерация идет в фоне
     
     $endpoint = Endpoints::get('generate_article');
     
