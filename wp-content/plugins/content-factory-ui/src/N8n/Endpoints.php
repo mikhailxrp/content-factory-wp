@@ -13,7 +13,7 @@ class Endpoints {
     'list_topics' => '/webhook/topics/list',
     'get_topic' => '/webhook/topics/get',
     'generate_article' => '/webhook-test/generate-article',
-    'check_article_status' => '/webhook-test/check-article-status',
+    'check_article_status' => '/webhook/check-article-status',
     'generate_telegram' => '/webhook-test/generate-telegram',
     'publish_telegram' => '/webhook-test/publish-telegram',
     'test_connection' => '/webhook/test',
