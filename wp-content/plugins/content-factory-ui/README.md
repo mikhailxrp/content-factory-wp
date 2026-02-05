@@ -42,7 +42,8 @@ WordPress плагин для управления контент-фабрико
 
 ### Статьи
 
-- `POST /webhook-test/generate-article?id={topic_id}` — генерация статьи из темы
+- `POST /webhook-test/generate-article?id={topic_id}` — генерация статьи из темы (возвращает сразу `{"status": "started"}`, генерация идет в фоне)
+- `GET /webhook-test/check-article-status?id={topic_id}` — проверка статуса генерации статьи
 - `GET /webhook/articles` — получить список статей
 - `GET /webhook/articles/{id}` — получить одну статью
 - `POST /webhook/articles/{id}/link` — связать статью с WP постом
@@ -81,6 +82,56 @@ WordPress плагин для управления контент-фабрико
 **Body:** Пустой (все данные передаются через query-параметры)
 
 **Пример запроса:** `POST /webhook-test/generate-article?id=12345`
+
+**Ответ от n8n (сразу после получения запроса):**
+
+```json
+{
+  "status": "started",
+  "topic_id": "12345"
+}
+```
+
+После этого генерация продолжается в фоне. Плагин автоматически проверяет статус каждую минуту.
+
+### Проверка статуса генерации статьи
+
+**Endpoint:** `GET /webhook-test/check-article-status?id={topic_id}`
+
+**Query-параметры:**
+
+- `id` — ID темы (topic_candidate_id)
+
+**Возможные ответы:**
+
+```json
+{
+  "status": "start",
+  "topic_candidate_id": "12345"
+}
+```
+
+```json
+{
+  "status": "success",
+  "topic_candidate_id": "12345",
+  "wordpress_post_id": "789",
+  "wp_post_link": "https://site.com/wp-admin/post.php?post=789&action=edit"
+}
+```
+
+```json
+{
+  "status": "error",
+  "topic_candidate_id": "12345"
+}
+```
+
+**Поведение плагина:**
+
+- `status: "start"` — продолжает проверку каждую минуту
+- `status: "success"` — активирует кнопку "Перейти к статье" со ссылкой из `wp_post_link`
+- `status: "error"` — показывает кнопку "Сгенерировать еще раз"
 
 ## Требования
 

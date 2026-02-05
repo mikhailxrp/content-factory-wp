@@ -962,8 +962,18 @@
 
       const $btn = $(`.cf-generate-article-btn[data-topic-id="${topicId}"]`);
       const $gotoBtn = $(`.cf-goto-article-btn[data-topic-id="${topicId}"]`);
-      const originalText = $btn.text();
-      $btn.prop("disabled", true).text("Генерация...");
+
+      // Сбрасываем состояние кнопки на дефолтное (если это повторная генерация)
+      $btn
+        .removeClass("button-secondary")
+        .addClass("button-primary")
+        .text("Генерация...")
+        .prop("disabled", true);
+
+      $gotoBtn
+        .prop("disabled", true)
+        .text("Генерация в процессе...")
+        .off("click");
 
       this.apiRequest(`topics/${topicId}/generate-article`, "POST")
         .done((response) => {
@@ -978,6 +988,8 @@
             this.showNotice("Генерация статьи запущена в фоне", "success");
             // Деактивируем кнопку "Перейти к статье"
             $gotoBtn.prop("disabled", true).text("Генерация в процессе...");
+            // Запускаем проверку статуса каждую минуту
+            this.startArticleStatusPolling(topicId);
           } else if (response.success) {
             this.showNotice(
               response.message || "Статья генерируется",
@@ -996,8 +1008,110 @@
           this.showNotice(errorMsg, "error");
         })
         .always(() => {
-          $btn.prop("disabled", false).text(originalText);
+          $btn.prop("disabled", false).text("Сгенерировать статью");
         });
+    },
+
+    startArticleStatusPolling(topicId) {
+      console.log(`Запуск polling для темы ${topicId}`);
+
+      // Очищаем предыдущий интервал, если был
+      if (this.pollingIntervals && this.pollingIntervals[topicId]) {
+        clearInterval(this.pollingIntervals[topicId]);
+      }
+
+      // Инициализируем объект для хранения интервалов
+      if (!this.pollingIntervals) {
+        this.pollingIntervals = {};
+      }
+
+      // Проверяем статус каждую минуту (60000 мс)
+      this.pollingIntervals[topicId] = setInterval(() => {
+        this.checkArticleStatus(topicId);
+      }, 60000);
+
+      // Делаем первую проверку сразу через 5 секунд
+      setTimeout(() => {
+        this.checkArticleStatus(topicId);
+      }, 5000);
+    },
+
+    checkArticleStatus(topicId) {
+      console.log(`Проверка статуса генерации для темы ${topicId}`);
+
+      this.apiRequest(`topics/${topicId}/check-article-status`, "GET")
+        .done((response) => {
+          console.log("checkArticleStatus: ответ", response);
+
+          if (!response.success || !response.data) {
+            return;
+          }
+
+          const status = response.data.status;
+          const $btn = $(
+            `.cf-generate-article-btn[data-topic-id="${topicId}"]`,
+          );
+          const $gotoBtn = $(
+            `.cf-goto-article-btn[data-topic-id="${topicId}"]`,
+          );
+
+          if (status === "success") {
+            // Генерация завершена успешно
+            console.log("Генерация завершена успешно");
+            this.stopArticleStatusPolling(topicId);
+
+            const postLink = response.data.wp_post_link;
+            if (postLink) {
+              // Делаем кнопку активной ссылкой
+              $gotoBtn
+                .prop("disabled", false)
+                .text("Перейти к статье")
+                .off("click")
+                .on("click", function () {
+                  window.open(postLink, "_blank");
+                });
+
+              this.showNotice(
+                "Статья успешно сгенерирована! Обновляем страницу...",
+                "success",
+              );
+
+              // Обновляем страницу через 2 секунды
+              setTimeout(() => {
+                location.reload();
+              }, 2000);
+            }
+          } else if (status === "error") {
+            // Ошибка генерации
+            console.log("Ошибка генерации статьи");
+            this.stopArticleStatusPolling(topicId);
+
+            // Заменяем кнопку "Сгенерировать статью" на "Сгенерировать еще раз"
+            $btn
+              .text("Сгенерировать еще раз")
+              .prop("disabled", false)
+              .removeClass("button-primary")
+              .addClass("button-secondary");
+
+            $gotoBtn.prop("disabled", true).text("Ошибка генерации");
+
+            this.showNotice("Ошибка при генерации статьи", "error");
+          } else if (status === "start") {
+            // Генерация еще в процессе
+            console.log("Генерация в процессе...");
+          }
+        })
+        .fail((xhr) => {
+          console.error("Ошибка проверки статуса:", xhr);
+        });
+    },
+
+    stopArticleStatusPolling(topicId) {
+      if (this.pollingIntervals && this.pollingIntervals[topicId]) {
+        console.log(`Остановка polling для темы ${topicId}`);
+        clearInterval(this.pollingIntervals[topicId]);
+        delete this.pollingIntervals[topicId];
+      }
     },
   };
 

@@ -164,6 +164,12 @@ class Router {
       'permission_callback' => [TopicsController::class, 'check_permission']
     ]);
 
+    register_rest_route(self::NAMESPACE, '/topics/(?P<id>[\d]+)/check-article-status', [
+      'methods' => 'GET',
+      'callback' => [TopicsController::class, 'check_article_status'],
+      'permission_callback' => [TopicsController::class, 'check_permission']
+    ]);
+
     // Articles
     register_rest_route(self::NAMESPACE, '/articles', [
       'methods' => 'GET',

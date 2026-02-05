@@ -222,6 +222,43 @@ class TopicsController {
   }
 
   /**
+   * Проверка статуса генерации статьи
+   */
+  public static function check_article_status($request) {
+    $id = $request->get_param('id');
+
+    if (empty($id)) {
+      return rest_ensure_response([
+        'success' => false,
+        'message' => __('Не указан ID темы', 'content-factory-ui')
+      ]);
+    }
+
+    $client = new Client();
+    $endpoint = Endpoints::get('check_article_status');
+    
+    error_log('[TopicsController] Проверка статуса генерации статьи для темы ID: ' . $id);
+    
+    // Отправляем id как query-параметр
+    $response = $client->get($endpoint . '?id=' . urlencode($id));
+
+    if (is_wp_error($response)) {
+      error_log('[TopicsController] Ошибка проверки статуса: ' . $response->get_error_message());
+      return rest_ensure_response([
+        'success' => false,
+        'message' => $response->get_error_message()
+      ]);
+    }
+
+    error_log('[TopicsController] Статус получен: ' . json_encode($response));
+
+    return rest_ensure_response([
+      'success' => true,
+      'data' => $response
+    ]);
+  }
+
+  /**
    * Проверка прав доступа
    */
   public static function check_permission() {
