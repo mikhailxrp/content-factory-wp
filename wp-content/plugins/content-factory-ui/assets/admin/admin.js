@@ -1071,15 +1071,7 @@
                   window.open(postLink, "_blank");
                 });
 
-              this.showNotice(
-                "Статья успешно сгенерирована! Обновляем страницу...",
-                "success",
-              );
-
-              // Обновляем страницу через 2 секунды
-              setTimeout(() => {
-                location.reload();
-              }, 2000);
+              this.showNotice("Статья готова!", "success");
             }
           } else if (status === "error") {
             // Ошибка генерации
