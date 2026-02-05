@@ -113,10 +113,10 @@ WordPress плагин для управления контент-фабрико
 
 ```json
 {
-  "status": "success",
+  "status": "draft",
   "topic_candidate_id": "12345",
   "wordpress_post_id": "789",
-  "wp_post_link": "https://site.com/wp-admin/post.php?post=789&action=edit"
+  "wp_post_link": "https://site.com/wp-json/wp/v2/posts/789"
 }
 ```
 
@@ -130,7 +130,7 @@ WordPress плагин для управления контент-фабрико
 **Поведение плагина:**
 
 - `status: "start"` — продолжает проверку каждую минуту
-- `status: "success"` — активирует кнопку "Перейти к статье" со ссылкой из `wp_post_link`
+- `status: "draft"` или `status: "success"` — активирует кнопку "Перейти к статье" со ссылкой из `wp_post_link`, через 2 секунды обновляет страницу
 - `status: "error"` — показывает кнопку "Сгенерировать еще раз"
 
 ## Требования

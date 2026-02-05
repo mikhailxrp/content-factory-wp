@@ -1055,7 +1055,7 @@
             `.cf-goto-article-btn[data-topic-id="${topicId}"]`,
           );
 
-          if (status === "success") {
+          if (status === "success" || status === "draft") {
             // Генерация завершена успешно
             console.log("Генерация завершена успешно");
             this.stopArticleStatusPolling(topicId);
