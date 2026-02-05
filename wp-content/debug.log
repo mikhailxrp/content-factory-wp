@@ -16829,3 +16829,6 @@ Stack trace:
 )
 
 [04-Feb-2026 19:49:06 UTC] [Client] JSON error: No error
+[05-Feb-2026 22:17:22 UTC] PHP Warning:  mysqli_real_connect(): (HY000/2002): Сделана попытка доступа к сокету методом, запрещенным правами доступа in C:\OSPanel\home\content-factory-wp\wp-includes\class-wpdb.php on line 1994
+[05-Feb-2026 22:17:25 UTC] PHP Warning:  mysqli_real_connect(): (HY000/2002): Сделана попытка доступа к сокету методом, запрещенным правами доступа in C:\OSPanel\home\content-factory-wp\wp-includes\class-wpdb.php on line 1994
+[05-Feb-2026 22:17:27 UTC] PHP Warning:  mysqli_real_connect(): (HY000/2002): Сделана попытка доступа к сокету методом, запрещенным правами доступа in C:\OSPanel\home\content-factory-wp\wp-includes\class-wpdb.php on line 1994

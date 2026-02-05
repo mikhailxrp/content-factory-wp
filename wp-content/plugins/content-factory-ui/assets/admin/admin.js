@@ -830,6 +830,16 @@
       this.apiRequest(`topics/list?run_id=${encodeURIComponent(runId)}`)
         .done((response) => {
           console.log("listTopics: получен ответ", response);
+          console.log("listTopics: список тем (response.data):", response.data);
+          console.log(
+            "listTopics: количество тем:",
+            response.data ? response.data.length : 0,
+          );
+
+          // Выводим каждую тему отдельно для детального просмотра
+          if (response.data && response.data.length > 0) {
+            console.log("listTopics: первая тема в списке:", response.data[0]);
+          }
 
           if (response.success && response.data) {
             this.showNotice("Темы загружены", "success");
