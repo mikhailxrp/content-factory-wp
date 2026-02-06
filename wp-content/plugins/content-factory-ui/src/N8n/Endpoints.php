@@ -14,6 +14,7 @@ class Endpoints {
     'get_topic' => '/webhook/topics/get',
     'generate_article' => '/webhook-test/generate-article',
     'check_article_status' => '/webhook/check-article-status',
+    'update_article_status' => '/webhook-test/update-article-status',
     'generate_telegram' => '/webhook-test/generate-telegram',
     'publish_telegram' => '/webhook-test/publish-telegram',
     'test_connection' => '/webhook/test',

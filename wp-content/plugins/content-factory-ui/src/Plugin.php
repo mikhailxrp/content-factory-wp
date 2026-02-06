@@ -5,6 +5,7 @@ namespace ContentFactoryUI;
 use ContentFactoryUI\Admin\Menu;
 use ContentFactoryUI\Rest\Router;
 use ContentFactoryUI\Support\Assets;
+use ContentFactoryUI\WP\PostStatusSync;
 
 /**
  * Основной класс плагина - инициализация модулей
@@ -27,6 +28,9 @@ class Plugin {
   public function init() {
     // REST API маршруты (всегда)
     add_action('rest_api_init', [Router::class, 'register']);
+    
+    // Синхронизация статуса постов с n8n
+    PostStatusSync::register();
     
     // ВРЕМЕННО: Принудительная очистка кэша REST API при каждой загрузке
     add_action('init', function() {

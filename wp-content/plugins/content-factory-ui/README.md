@@ -44,6 +44,7 @@ WordPress плагин для управления контент-фабрико
 
 - `POST /webhook-test/generate-article?id={topic_id}` — генерация статьи из темы (возвращает сразу `{"status": "started"}`, генерация идет в фоне)
 - `GET /webhook-test/check-article-status?id={topic_id}` — проверка статуса генерации статьи
+- `POST /webhook-test/update-article-status` — обновление статуса статьи (вызывается автоматически при публикации в WP)
 - `GET /webhook/articles` — получить список статей
 - `GET /webhook/articles/{id}` — получить одну статью
 - `POST /webhook/articles/{id}/link` — связать статью с WP постом
@@ -130,8 +131,55 @@ WordPress плагин для управления контент-фабрико
 **Поведение плагина:**
 
 - `status: "start"` — продолжает проверку каждую минуту
-- `status: "draft"` или `status: "success"` — активирует кнопку "Перейти к статье" со ссылкой из `wp_post_link`, через 2 секунды обновляет страницу
+- `status: "draft"` или `status: "success"` — активирует кнопку "Перейти к статье" со ссылкой из `wp_post_link`
 - `status: "error"` — показывает кнопку "Сгенерировать еще раз"
+
+### Синхронизация статуса статьи при публикации
+
+Плагин автоматически отслеживает изменение статуса постов в WordPress и отправляет уведомления в n8n.
+
+**Endpoint:** `POST /webhook-test/update-article-status`
+
+**Когда вызывается:** Автоматически при публикации статьи в WordPress (нажатие кнопки "Опубликовать" в редакторе)
+
+**Отправляемые данные при публикации:**
+
+```json
+{
+  "wordpress_post_id": 789,
+  "topic_candidate_id": "12345",
+  "status": "published",
+  "published_at": "2024-01-30 12:00:00",
+  "post_url": "https://site.com/article-slug/"
+}
+```
+
+**Отправляемые данные при снятии с публикации:**
+
+```json
+{
+  "wordpress_post_id": 789,
+  "topic_candidate_id": "12345",
+  "status": "draft",
+  "unpublished_at": "2024-01-30 12:00:00"
+}
+```
+
+**Важно:** При создании черновика в WordPress через n8n необходимо сохранять `topic_candidate_id` в post meta:
+
+```json
+POST /wp-json/wp/v2/posts
+{
+  "status": "draft",
+  "title": "...",
+  "content": "...",
+  "meta": {
+    "topic_candidate_id": "12345"
+  }
+}
+```
+
+Это позволяет плагину связать WordPress пост с темой во внешней БД и отправлять обновления статуса.
 
 ## Требования
 
