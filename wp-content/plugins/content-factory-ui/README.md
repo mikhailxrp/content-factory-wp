@@ -45,7 +45,7 @@ WordPress плагин для управления контент-фабрико
 - `POST /webhook-test/generate-article?id={topic_id}` — генерация статьи из темы (возвращает сразу `{"status": "started"}`, генерация идет в фоне)
 - `GET /webhook-test/check-article-status?id={topic_id}` — проверка статуса генерации статьи
 - `POST /webhook-test/update-article-status` — обновление статуса статьи (вызывается автоматически при публикации в WP)
-- `GET /webhook/articles` — получить список статей
+- `GET /webhook/articles/list?run_id={run_id}&status={status}` — получить список статей с фильтрами
 - `GET /webhook/articles/{id}` — получить одну статью
 - `POST /webhook/articles/{id}/link` — связать статью с WP постом
 
@@ -180,6 +180,49 @@ POST /wp-json/wp/v2/posts
 ```
 
 Это позволяет плагину связать WordPress пост с темой во внешней БД и отправлять обновления статуса.
+
+### Получение списка статей
+
+**Endpoint:** `GET /webhook/articles/list`
+
+**Query-параметры:**
+
+- `run_id` (опционально) — фильтр по run_id
+- `status` (опционально) — фильтр по статусу (`draft`, `published`)
+
+**Примеры запросов:**
+
+- `GET /webhook/articles/list` — все статьи
+- `GET /webhook/articles/list?status=published` — только опубликованные
+- `GET /webhook/articles/list?run_id=abc123&status=draft` — черновики по конкретному run_id
+
+**Ответ:** Массив статей
+
+```json
+[
+  {
+    "wordpress_post_id": 789,
+    "topic_candidate_id": "12345",
+    "topic_title": "Название темы",
+    "status": "published",
+    "wp_post_link": "https://site.com/wp-admin/post.php?post=789&action=edit",
+    "post_url": "https://site.com/article-slug/",
+    "published_at": "2024-01-30 12:00:00",
+    "created_at": "2024-01-29 10:00:00"
+  }
+]
+```
+
+**Поля ответа:**
+
+- `wordpress_post_id` — ID поста в WordPress
+- `topic_candidate_id` — ID темы из внешней БД
+- `topic_title` — Название темы
+- `status` — Статус статьи (`draft` или `published`)
+- `wp_post_link` — Ссылка на редактирование в WP админке
+- `post_url` — Публичная ссылка на статью (только для `published`)
+- `published_at` — Дата публикации (только для `published`)
+- `created_at` — Дата создания черновика
 
 ## Требования
 

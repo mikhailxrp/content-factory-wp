@@ -174,7 +174,21 @@ class Router {
     register_rest_route(self::NAMESPACE, '/articles', [
       'methods' => 'GET',
       'callback' => [ArticlesController::class, 'list'],
-      'permission_callback' => [ArticlesController::class, 'check_permission']
+      'permission_callback' => [ArticlesController::class, 'check_permission'],
+      'args' => [
+        'run_id' => [
+          'required' => false,
+          'type' => 'string',
+          'description' => 'ID запуска генерации',
+          'sanitize_callback' => 'sanitize_text_field'
+        ],
+        'status' => [
+          'required' => false,
+          'type' => 'string',
+          'description' => 'Статус статьи (draft, published)',
+          'sanitize_callback' => 'sanitize_text_field'
+        ]
+      ]
     ]);
 
     register_rest_route(self::NAMESPACE, '/articles/(?P<id>[\d]+)', [

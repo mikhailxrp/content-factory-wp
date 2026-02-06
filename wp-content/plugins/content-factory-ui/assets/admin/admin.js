@@ -44,8 +44,9 @@
       $("#cf-generate-topics").on("click", this.generateTopics.bind(this));
       $("#cf-update-topics").on("click", this.updateTopics.bind(this));
 
-      // Lists refresh
-      $("#cf-refresh-articles").on("click", () => this.loadList("articles"));
+      // Articles
+      $("#cf-load-articles").on("click", this.loadArticles.bind(this));
+      $("#cf-refresh-articles").on("click", this.loadArticles.bind(this));
 
       // Logs
       $("#cf-logs-filter").on("change", this.filterLogs.bind(this));
@@ -76,8 +77,8 @@
             this.loadRunIdsForTopics();
             break;
           case "articles":
-            this.loadList("articles");
-            this.loadArticlesForSelect();
+            this.loadRunIdsForArticles();
+            this.loadArticles();
             break;
           case "telegram":
             this.loadArticlesForSelect();
@@ -1130,6 +1131,106 @@
         clearInterval(this.pollingIntervals[topicId]);
         delete this.pollingIntervals[topicId];
       }
+    },
+
+    // Articles - загрузка run_ids
+    loadRunIdsForArticles() {
+      console.log("=== loadRunIdsForArticles: загрузка run_ids ===");
+      const $select = $("#cf-articles-run-id-select");
+
+      this.apiRequest("senses/run-ids")
+        .done((response) => {
+          if (response.success && response.data && response.data.length > 0) {
+            const options =
+              '<option value="">Все</option>' +
+              response.data
+                .map(
+                  (runId) =>
+                    `<option value="${this.escapeHtml(runId)}">${this.escapeHtml(runId)}</option>`,
+                )
+                .join("");
+            $select.html(options);
+          }
+        })
+        .fail(() => {
+          $select.html('<option value="">Ошибка загрузки</option>');
+        });
+    },
+
+    // Articles - загрузка списка статей
+    loadArticles() {
+      const runId = $("#cf-articles-run-id-select").val();
+      const status = $("#cf-articles-status-select").val();
+
+      const $list = $("#cf-articles-list");
+      $list.html("<p>" + window.cfUIData.i18n.loading + "</p>");
+
+      // Формируем параметры запроса
+      let url = "articles";
+      const params = [];
+      if (runId) params.push(`run_id=${encodeURIComponent(runId)}`);
+      if (status) params.push(`status=${encodeURIComponent(status)}`);
+      if (params.length > 0) {
+        url += "?" + params.join("&");
+      }
+
+      console.log("loadArticles: запрос к", url);
+
+      this.apiRequest(url)
+        .done((response) => {
+          console.log("loadArticles: получен ответ", response);
+
+          if (response.success && response.data) {
+            this.renderArticlesList(response.data, $list);
+          } else {
+            $list.html("<p>Нет статей</p>");
+          }
+        })
+        .fail((xhr) => {
+          console.error("loadArticles: ошибка", xhr);
+          $list.html(
+            '<p class="cf-ui-notice error">Ошибка загрузки статей</p>',
+          );
+        });
+    },
+
+    // Articles - рендер списка
+    renderArticlesList(articles, $container) {
+      if (!articles || articles.length === 0) {
+        $container.html("<p>Список статей пуст</p>");
+        return;
+      }
+
+      const html = articles
+        .map((article) => {
+          const title = article.topic_title || "Без названия";
+          const status = article.status || "draft";
+          const publishedClass =
+            status === "published" ? " cf-ui-list-item-published" : "";
+          const date = article.published_at || article.created_at || "";
+          const wpPostId = article.wordpress_post_id || "";
+          const postLink = article.wp_post_link || "";
+          const publicUrl = article.post_url || "";
+
+          return `
+            <div class="cf-ui-list-item${publishedClass}">
+              <h3>${this.escapeHtml(title)}</h3>
+              <div class="cf-ui-meta">
+                <span>WP Post ID: ${wpPostId}</span> | 
+                <span>Topic ID: ${article.topic_candidate_id}</span> | 
+                <span>Status: <strong class="status-${status}">${status}</strong></span> | 
+                <span>${date}</span>
+              </div>
+              <div class="cf-ui-detail-actions" style="margin-top: 10px;">
+                ${postLink ? `<a href="${postLink}" target="_blank" class="button">Редактировать в WP</a>` : ""}
+                ${publicUrl ? `<a href="${publicUrl}" target="_blank" class="button">Посмотреть на сайте</a>` : ""}
+              </div>
+            </div>
+          `;
+        })
+        .join("");
+
+      $container.html(html);
     },
   };
 

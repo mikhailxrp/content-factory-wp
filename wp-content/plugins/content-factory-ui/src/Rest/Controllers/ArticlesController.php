@@ -15,18 +15,46 @@ class ArticlesController {
    * Список статей
    */
   public static function list($request) {
-    $articles = TransientCache::remember('articles_list', function() {
-      $client = new Client();
-      $endpoint = Endpoints::get('list_articles') ?? '/webhook/articles';
-      return $client->get($endpoint);
-    }, 120);
+    $run_id = $request->get_param('run_id');
+    $status = $request->get_param('status');
+    
+    $client = new Client();
+    $endpoint = Endpoints::get('list_articles');
+    
+    if (!$endpoint) {
+      return rest_ensure_response([
+        'success' => false,
+        'message' => __('Endpoint list_articles не настроен', 'content-factory-ui')
+      ]);
+    }
+    
+    // Формируем query-параметры
+    $params = [];
+    if (!empty($run_id)) {
+      $params['run_id'] = $run_id;
+    }
+    if (!empty($status)) {
+      $params['status'] = $status;
+    }
+    
+    $url = $endpoint;
+    if (!empty($params)) {
+      $url .= '?' . http_build_query($params);
+    }
+    
+    error_log('[ArticlesController] Запрос списка статей: ' . $url);
+    
+    $articles = $client->get($url);
 
     if (is_wp_error($articles)) {
+      error_log('[ArticlesController] Ошибка: ' . $articles->get_error_message());
       return rest_ensure_response([
         'success' => false,
         'message' => $articles->get_error_message()
       ]);
     }
+
+    error_log('[ArticlesController] Получено статей: ' . count($articles));
 
     return rest_ensure_response([
       'success' => true,
