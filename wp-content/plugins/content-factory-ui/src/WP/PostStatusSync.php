@@ -36,24 +36,35 @@ class PostStatusSync {
    * Обработчик изменения статуса поста
    */
   public static function on_post_status_change($new_status, $old_status, $post) {
+    error_log("[PostStatusSync] Hook сработал! post_id={$post->ID}, old_status={$old_status}, new_status={$new_status}, post_type={$post->post_type}");
+    
     // Только для постов типа 'post'
     if ($post->post_type !== 'post') {
+      error_log("[PostStatusSync] Пропускаем - не post type");
       return;
     }
 
     // Проверяем, что это статья из нашей системы (есть topic_candidate_id)
     $topicId = get_post_meta($post->ID, 'topic_candidate_id', true);
+    error_log("[PostStatusSync] Получен topic_candidate_id из meta: " . var_export($topicId, true));
+    
     if (empty($topicId)) {
+      error_log("[PostStatusSync] Пропускаем - нет topic_candidate_id в post_meta");
+      // Выведем все meta для отладки
+      $all_meta = get_post_meta($post->ID);
+      error_log("[PostStatusSync] Все post_meta: " . print_r($all_meta, true));
       return;
     }
 
     // Отслеживаем только переход в статус 'publish'
     if ($new_status === 'publish' && $old_status !== 'publish') {
+      error_log("[PostStatusSync] Переход в publish - отправляем уведомление");
       self::notify_published($post->ID, $topicId);
     }
 
     // Опционально: отслеживаем переход обратно в draft
     if ($new_status === 'draft' && $old_status === 'publish') {
+      error_log("[PostStatusSync] Переход в draft - отправляем уведомление");
       self::notify_unpublished($post->ID, $topicId);
     }
   }
