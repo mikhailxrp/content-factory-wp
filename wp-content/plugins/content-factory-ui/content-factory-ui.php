@@ -39,8 +39,19 @@ spl_autoload_register(function ($class) {
 
 // Инициализация плагина
 add_action('plugins_loaded', function () {
+  // Принудительная запись в лог
+  $log_file = WP_CONTENT_DIR . '/debug.log';
+  $msg = date('[Y-m-d H:i:s]') . " [ContentFactoryUI] ===== ПЛАГИН ЗАГРУЖАЕТСЯ =====\n";
+  @file_put_contents($log_file, $msg, FILE_APPEND);
+  
+  error_log("[ContentFactoryUI] ===== ПЛАГИН ЗАГРУЖАЕТСЯ (plugins_loaded hook) =====");
   load_plugin_textdomain('content-factory-ui', false, dirname(CF_UI_BASENAME) . '/languages');
+  error_log("[ContentFactoryUI] Вызываем Plugin::instance()->init()");
   Plugin::instance()->init();
+  error_log("[ContentFactoryUI] Плагин инициализирован");
+  
+  $msg = date('[Y-m-d H:i:s]') . " [ContentFactoryUI] Плагин инициализирован\n";
+  @file_put_contents($log_file, $msg, FILE_APPEND);
 });
 
 // Активация/деактивация

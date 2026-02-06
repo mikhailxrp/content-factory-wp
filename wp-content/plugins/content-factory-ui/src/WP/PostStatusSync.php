@@ -13,14 +13,18 @@ class PostStatusSync {
    * Регистрация хуков
    */
   public static function register() {
+    error_log("[PostStatusSync] ===== КЛАСС ЗАГРУЖЕН И REGISTER() ВЫЗВАН =====");
+    error_log("[PostStatusSync] Регистрируем hook transition_post_status");
     add_action('transition_post_status', [self::class, 'on_post_status_change'], 10, 3);
     add_action('init', [self::class, 'register_post_meta']);
+    error_log("[PostStatusSync] Хуки зарегистрированы успешно");
   }
 
   /**
    * Регистрация post meta для REST API
    */
   public static function register_post_meta() {
+    error_log("[PostStatusSync] Регистрируем post_meta topic_candidate_id");
     register_post_meta('post', 'topic_candidate_id', [
       'type' => 'string',
       'description' => 'ID темы из Content Factory',
@@ -30,12 +34,26 @@ class PostStatusSync {
         return current_user_can('edit_posts');
       }
     ]);
+    error_log("[PostStatusSync] Post meta зарегистрирован");
   }
 
   /**
    * Обработчик изменения статуса поста
    */
   public static function on_post_status_change($new_status, $old_status, $post) {
+    // Логируем в опцию WP для отладки
+    $debug_log = get_option('cf_post_status_debug', []);
+    $debug_log[] = [
+      'time' => current_time('mysql'),
+      'post_id' => $post->ID,
+      'old_status' => $old_status,
+      'new_status' => $new_status,
+      'post_type' => $post->post_type
+    ];
+    // Храним только последние 20 записей
+    $debug_log = array_slice($debug_log, -20);
+    update_option('cf_post_status_debug', $debug_log);
+    
     error_log("[PostStatusSync] Hook сработал! post_id={$post->ID}, old_status={$old_status}, new_status={$new_status}, post_type={$post->post_type}");
     
     // Только для постов типа 'post'
