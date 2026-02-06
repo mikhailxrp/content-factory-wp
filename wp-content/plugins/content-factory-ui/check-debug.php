@@ -54,6 +54,8 @@ $debug_log = get_option('cf_post_status_debug', []);
                 <th>Старый статус</th>
                 <th>Новый статус</th>
                 <th>Post Type</th>
+                <th>Topic ID</th>
+                <th>Meta Keys</th>
             </tr>
             <?php foreach (array_reverse($debug_log) as $entry): ?>
                 <tr>
@@ -62,6 +64,8 @@ $debug_log = get_option('cf_post_status_debug', []);
                     <td><?php echo esc_html($entry['old_status']); ?></td>
                     <td><strong><?php echo esc_html($entry['new_status']); ?></strong></td>
                     <td><?php echo esc_html($entry['post_type']); ?></td>
+                    <td><?php echo isset($entry['topic_id']) ? esc_html($entry['topic_id']) : '-'; ?></td>
+                    <td><small><?php echo isset($entry['all_meta']) ? esc_html(implode(', ', $entry['all_meta'])) : '-'; ?></small></td>
                 </tr>
             <?php endforeach; ?>
         </table>

@@ -64,6 +64,13 @@ class PostStatusSync {
 
     // Проверяем, что это статья из нашей системы (есть topic_candidate_id)
     $topicId = get_post_meta($post->ID, 'topic_candidate_id', true);
+    
+    // Логируем в опцию для отладки
+    $debug_log = get_option('cf_post_status_debug', []);
+    $debug_log[count($debug_log) - 1]['topic_id'] = $topicId ?: 'НЕТ';
+    $debug_log[count($debug_log) - 1]['all_meta'] = array_keys(get_post_meta($post->ID));
+    update_option('cf_post_status_debug', $debug_log);
+    
     error_log("[PostStatusSync] Получен topic_candidate_id из meta: " . var_export($topicId, true));
     
     if (empty($topicId)) {
@@ -71,6 +78,12 @@ class PostStatusSync {
       // Выведем все meta для отладки
       $all_meta = get_post_meta($post->ID);
       error_log("[PostStatusSync] Все post_meta: " . print_r($all_meta, true));
+      
+      // ВРЕМЕННО: отправляем запрос даже без topic_id для теста
+      if ($new_status === 'publish' && $old_status !== 'publish') {
+        error_log("[PostStatusSync] ТЕСТ: Отправляем без topic_id");
+        self::notify_published($post->ID, 'TEST_' . $post->ID);
+      }
       return;
     }
 
