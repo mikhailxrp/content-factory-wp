@@ -56,6 +56,20 @@
   border-left-color: #0073aa;
 }
 
+.cf-ui-list-item-published {
+  border-left-color: #46b450 !important;
+  background: #f0f9f1 !important;
+}
+
+.cf-ui-list-item-published:hover {
+  background: #e7f5e8 !important;
+}
+
+.cf-ui-list-item-published.active {
+  background: #dff0e0 !important;
+  border-left-color: #2e7d32 !important;
+}
+
 .cf-ui-list-item h3 {
   margin: 0 0 5px;
   font-size: 16px;
@@ -353,6 +367,20 @@
 .cf-ui-status.status-error {
   background: #fef7f1;
   color: #721c24;
+}
+
+/* Status в meta */
+.status-published {
+  color: #46b450;
+  font-weight: 600;
+}
+
+.status-draft {
+  color: #646970;
+}
+
+.status-error {
+  color: #dc3232;
 }
 
 /* Responsive */

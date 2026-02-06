@@ -400,14 +400,18 @@
         const score = item.topic_score || 0;
         const status = item.status || "";
 
+        // Добавляем класс для опубликованных тем
+        const publishedClass =
+          status === "published" ? " cf-ui-list-item-published" : "";
+
         return `
-          <div class="cf-ui-list-item" data-id="${item.topic_candidate_id}">
+          <div class="cf-ui-list-item${publishedClass}" data-id="${item.topic_candidate_id}">
             <h3>${this.escapeHtml(title)}</h3>
             ${angle ? `<p><strong>Угол:</strong> ${this.escapeHtml(angle)}</p>` : ""}
             ${query ? `<p><strong>Запрос:</strong> ${this.escapeHtml(this.truncate(query, 100))}</p>` : ""}
             <div class="cf-ui-meta">
               <span>Score: ${score}</span> | 
-              <span>Status: ${status}</span> | 
+              <span>Status: <strong class="status-${status}">${status}</strong></span> | 
               <span>Meaning: ${item.meaning_id}</span> | 
               <span>${date}</span>
             </div>
