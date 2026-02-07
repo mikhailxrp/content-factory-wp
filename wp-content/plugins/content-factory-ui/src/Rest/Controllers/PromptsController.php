@@ -152,6 +152,43 @@ class PromptsController {
   }
 
   /**
+   * Удалить промпт
+   */
+  public static function delete($request) {
+    $id = $request->get_param('id');
+    
+    error_log('=== Удаление промпта ===');
+    error_log('ID: ' . $id);
+    
+    if (empty($id)) {
+      return rest_ensure_response([
+        'success' => false,
+        'message' => 'ID промпта не указан'
+      ]);
+    }
+    
+    $client = new Client();
+    $endpoint = Endpoints::get('delete_prompt');
+    
+    $response = $client->post($endpoint, ['id' => $id]);
+    error_log('Ответ от n8n: ' . print_r($response, true));
+
+    if (is_wp_error($response)) {
+      error_log('Ошибка WP: ' . $response->get_error_message());
+      return rest_ensure_response([
+        'success' => false,
+        'message' => $response->get_error_message()
+      ]);
+    }
+
+    return rest_ensure_response([
+      'success' => true,
+      'message' => 'Промпт успешно удалён',
+      'data' => $response
+    ]);
+  }
+
+  /**
    * Проверка прав доступа
    */
   public static function check_permission() {

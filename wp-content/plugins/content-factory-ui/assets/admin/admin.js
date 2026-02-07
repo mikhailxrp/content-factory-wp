@@ -1270,18 +1270,42 @@
         return;
       }
 
+      // Определяем дефолтные промпты (ID <= 9)
+      const defaultPromptIds = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+
       const html = prompts
         .map((prompt) => {
           const angle = prompt.angle || "Без угла";
           const templateName = prompt.template_name || "Без названия";
           const isActive = prompt.is_active === 1;
           const activeClass = isActive ? " cf-ui-prompt-active" : "";
+          const isDefault = defaultPromptIds.includes(prompt.id);
+
+          // Описание углов
+          const angleDescriptions = {
+            инструкция: "Пошаговое руководство с практическими примерами",
+            цена: "Анализ стоимости с факторами ценообразования",
+            "коммерческое предложение": "Убедительное КП с фокусом на выгоды",
+            кейс: "Реальный пример с конкретными результатами",
+            ошибки: "Типичные ошибки и способы их избежать",
+            сравнение: "Объективное сравнение вариантов",
+            чеклист: "Практический список для выполнения задачи",
+            примеры: "Подборка примеров с разбором",
+            информация: "Полная информация по теме",
+          };
+          const angleDesc =
+            angleDescriptions[angle.toLowerCase()] ||
+            "Специальный угол раскрытия темы";
 
           return `
             <div class="cf-ui-prompt-card${activeClass}" data-prompt-id="${prompt.id}">
               <div class="cf-ui-prompt-card-header">
                 <h3>${this.escapeHtml(templateName)}</h3>
-                <span class="cf-ui-prompt-badge">${this.escapeHtml(angle)}</span>
+                ${!isDefault ? '<button class="cf-ui-prompt-delete" data-prompt-id="' + prompt.id + '" title="Удалить промпт"><span class="dashicons dashicons-trash"></span></button>' : ""}
+              </div>
+              <div class="cf-ui-prompt-card-angle">
+                <strong>Угол:</strong> ${this.escapeHtml(angle)}
+                <p class="cf-ui-prompt-angle-desc">${angleDesc}</p>
               </div>
               <div class="cf-ui-prompt-card-meta">
                 <span>ID: ${prompt.id}</span>
@@ -1299,11 +1323,26 @@
       $container.html(html);
 
       // Добавляем обработчик клика на карточки
-      $container.find(".cf-ui-prompt-card").on("click", function () {
+      $container.find(".cf-ui-prompt-card").on("click", function (e) {
+        // Игнорируем клик на кнопку удаления
+        if ($(e.target).closest(".cf-ui-prompt-delete").length > 0) {
+          return;
+        }
+
         const promptId = $(this).data("prompt-id");
         const promptData = prompts.find((p) => p.id === promptId);
         if (promptData) {
           cfUI.showPromptDetail(promptData);
+        }
+      });
+
+      // Добавляем обработчик для кнопок удаления
+      $container.find(".cf-ui-prompt-delete").on("click", function (e) {
+        e.stopPropagation();
+        const promptId = $(this).data("prompt-id");
+        const promptData = prompts.find((p) => p.id === promptId);
+        if (promptData) {
+          cfUI.deletePrompt(promptData);
         }
       });
     },
@@ -1557,6 +1596,49 @@
 
       this.renderPromptDetail(newPrompt, true);
       $detail.show();
+    },
+
+    // Prompts - удалить промпт
+    deletePrompt(prompt) {
+      if (
+        !confirm(
+          `Вы уверены, что хотите удалить промпт "${prompt.template_name}"?\n\nЭто действие нельзя отменить.`,
+        )
+      ) {
+        return;
+      }
+
+      console.log("Удаление промпта:", prompt.id);
+
+      this.apiRequest(`prompts/${prompt.id}`, "DELETE")
+        .done((response) => {
+          console.log("Ответ от сервера:", response);
+
+          if (response.success) {
+            this.showNotice(
+              response.message || "Промпт успешно удалён",
+              "success",
+            );
+
+            // Обновляем список промптов
+            this.loadPrompts();
+
+            // Если открыт детальный вид этого промпта, закрываем его
+            const $detail = $("#cf-prompt-detail");
+            const currentPrompt = $detail.data("prompt");
+            if (currentPrompt && currentPrompt.id === prompt.id) {
+              $detail.hide();
+            }
+          } else {
+            this.showNotice(response.message || "Ошибка при удалении", "error");
+          }
+        })
+        .fail((xhr) => {
+          console.error("Ошибка удаления:", xhr);
+          const errorMsg =
+            xhr.responseJSON?.message || "Ошибка при удалении промпта";
+          this.showNotice(errorMsg, "error");
+        });
     },
 
     // Prompts - сохранить промпт (создание или обновление)

@@ -427,6 +427,30 @@
   flex: 1;
 }
 
+.cf-ui-prompt-delete {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  color: #dc3232;
+  font-size: 18px;
+  line-height: 1;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  border-radius: 3px;
+}
+
+.cf-ui-prompt-delete:hover {
+  background: #dc3232;
+  color: #fff;
+}
+
+.cf-ui-prompt-delete .dashicons {
+  width: 18px;
+  height: 18px;
+  font-size: 18px;
+}
+
 .cf-ui-prompt-badge {
   display: inline-block;
   padding: 4px 10px;
@@ -436,6 +460,26 @@
   font-size: 12px;
   font-weight: 500;
   white-space: nowrap;
+}
+
+.cf-ui-prompt-card-angle {
+  margin-bottom: 12px;
+  padding: 10px;
+  background: #f6f7f7;
+  border-radius: 4px;
+  border-left: 3px solid #2271b1;
+}
+
+.cf-ui-prompt-card-angle strong {
+  color: #1d2327;
+  font-size: 13px;
+}
+
+.cf-ui-prompt-angle-desc {
+  margin: 5px 0 0 0;
+  font-size: 12px;
+  color: #646970;
+  line-height: 1.5;
 }
 
 .cf-ui-prompt-card-meta {

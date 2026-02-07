@@ -24,7 +24,8 @@ class Endpoints {
     'get_sense' => '/webhook/senses',
     'list_prompts' => '/webhook-test/prompts/list',
     'create_prompt' => '/webhook-test/prompts/create',
-    'update_prompt' => '/webhook-test/prompts/update'
+    'update_prompt' => '/webhook-test/prompts/update',
+    'delete_prompt' => '/webhook-test/prompts/delete'
   ];
 
   /**
