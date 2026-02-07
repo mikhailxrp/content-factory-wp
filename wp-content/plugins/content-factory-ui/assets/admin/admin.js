@@ -56,6 +56,12 @@
       // Telegram
       $("#cf-tg-generate-form").on("submit", this.generateTelegram.bind(this));
       $("#cf-tg-publish").on("click", this.publishTelegram.bind(this));
+
+      // Prompts
+      $("#cf-refresh-prompts").on("click", () => this.loadPrompts());
+      $("#cf-add-prompt").on("click", () => {
+        alert("Функционал добавления промпта будет реализован позже");
+      });
     },
 
     loadPageData() {
@@ -84,6 +90,9 @@
             break;
           case "logs":
             this.loadList("logs");
+            break;
+          case "prompts":
+            this.loadPrompts();
             break;
         }
       }, 300);
@@ -1230,6 +1239,176 @@
         .join("");
 
       $container.html(html);
+    },
+
+    // Prompts - загрузка списка промптов
+    loadPrompts() {
+      console.log("=== loadPrompts: загрузка промптов ===");
+      const $list = $("#cf-prompts-list");
+      $list.html("<p>" + window.cfUIData.i18n.loading + "</p>");
+
+      this.apiRequest("prompts")
+        .done((response) => {
+          console.log("loadPrompts: получен ответ", response);
+
+          if (response.success && response.data) {
+            this.renderPromptsList(response.data, $list);
+          } else {
+            $list.html("<p>Нет промптов</p>");
+          }
+        })
+        .fail((xhr) => {
+          console.error("loadPrompts: ошибка", xhr);
+          $list.html(
+            '<p class="cf-ui-notice error">Ошибка загрузки промптов</p>',
+          );
+        });
+    },
+
+    // Prompts - рендер списка карточек
+    renderPromptsList(prompts, $container) {
+      if (!prompts || prompts.length === 0) {
+        $container.html("<p>Список промптов пуст</p>");
+        return;
+      }
+
+      const html = prompts
+        .map((prompt) => {
+          const angle = prompt.angle || "Без угла";
+          const templateName = prompt.template_name || "Без названия";
+          const isActive = prompt.is_active === 1;
+          const activeClass = isActive ? " cf-ui-prompt-active" : "";
+
+          return `
+            <div class="cf-ui-prompt-card${activeClass}" data-prompt-id="${prompt.id}">
+              <div class="cf-ui-prompt-card-header">
+                <h3>${this.escapeHtml(templateName)}</h3>
+                <span class="cf-ui-prompt-badge">${this.escapeHtml(angle)}</span>
+              </div>
+              <div class="cf-ui-prompt-card-meta">
+                <span>ID: ${prompt.id}</span>
+                <span>Статус: ${isActive ? '<strong style="color: #46b450;">Активен</strong>' : '<strong style="color: #999;">Неактивен</strong>'}</span>
+              </div>
+              <div class="cf-ui-prompt-card-footer">
+                <span>Мин. слов: ${prompt.min_words || 0}</span>
+                <span>Макс. слов: ${prompt.max_words || 0}</span>
+              </div>
+            </div>
+          `;
+        })
+        .join("");
+
+      $container.html(html);
+
+      // Добавляем обработчик клика на карточки
+      $container.find(".cf-ui-prompt-card").on("click", function () {
+        const promptId = $(this).data("prompt-id");
+        const promptData = prompts.find((p) => p.id === promptId);
+        if (promptData) {
+          cfUI.showPromptDetail(promptData);
+        }
+      });
+    },
+
+    // Prompts - показать детали промпта
+    showPromptDetail(prompt) {
+      const $detail = $("#cf-prompt-detail");
+
+      // Форматируем structure_rules для красивого отображения
+      let structureHtml = "";
+      if (prompt.structure_rules) {
+        const rules =
+          typeof prompt.structure_rules === "string"
+            ? JSON.parse(prompt.structure_rules)
+            : prompt.structure_rules;
+
+        structureHtml = '<div class="cf-ui-prompt-structure">';
+
+        if (rules.sections && Array.isArray(rules.sections)) {
+          structureHtml += "<h4>Секции статьи:</h4><ol>";
+          rules.sections.forEach((section) => {
+            structureHtml += `<li>${this.escapeHtml(section)}</li>`;
+          });
+          structureHtml += "</ol>";
+        }
+
+        // Дополнительные правила
+        const additionalRules = [];
+        if (rules.min_steps)
+          additionalRules.push(`Минимум шагов: ${rules.min_steps}`);
+        if (rules.min_criteria)
+          additionalRules.push(`Минимум критериев: ${rules.min_criteria}`);
+        if (rules.min_mistakes)
+          additionalRules.push(`Минимум ошибок: ${rules.min_mistakes}`);
+        if (rules.min_examples)
+          additionalRules.push(`Минимум примеров: ${rules.min_examples}`);
+        if (rules.min_items)
+          additionalRules.push(`Минимум пунктов: ${rules.min_items}`);
+        if (rules.include_warnings)
+          additionalRules.push("Включать предупреждения");
+        if (rules.include_table) additionalRules.push("Включать таблицу");
+        if (rules.include_cta)
+          additionalRules.push("Включать призыв к действию");
+        if (rules.include_checklist) additionalRules.push("Включать чек-лист");
+        if (rules.include_examples) additionalRules.push("Включать примеры");
+        if (rules.include_faq) additionalRules.push("Включать FAQ");
+        if (rules.include_metrics) additionalRules.push("Включать метрики");
+        if (rules.include_timeline) additionalRules.push("Включать таймлайн");
+        if (rules.include_analysis) additionalRules.push("Включать анализ");
+        if (rules.focus_on_benefits) additionalRules.push("Фокус на выгодах");
+        if (rules.group_by_stages)
+          additionalRules.push("Группировать по этапам");
+
+        if (additionalRules.length > 0) {
+          structureHtml += "<h4>Дополнительные правила:</h4><ul>";
+          additionalRules.forEach((rule) => {
+            structureHtml += `<li>${rule}</li>`;
+          });
+          structureHtml += "</ul>";
+        }
+
+        structureHtml += "</div>";
+      }
+
+      const html = `
+        <div class="cf-ui-detail-header">
+          <h2>${this.escapeHtml(prompt.template_name || "Промпт")}</h2>
+          <button type="button" class="button cf-close-prompt-detail">Закрыть</button>
+        </div>
+        <div class="cf-ui-detail-content">
+          <div class="cf-ui-prompt-info">
+            <p><strong>ID:</strong> ${prompt.id}</p>
+            <p><strong>Угол:</strong> ${this.escapeHtml(prompt.angle || "")}</p>
+            <p><strong>Тон:</strong> ${this.escapeHtml(prompt.tone || "")}</p>
+            <p><strong>Статус:</strong> ${prompt.is_active === 1 ? '<span style="color: #46b450;">Активен</span>' : '<span style="color: #999;">Неактивен</span>'}</p>
+            <p><strong>Диапазон слов:</strong> ${prompt.min_words || 0} - ${prompt.max_words || 0}</p>
+          </div>
+          
+          <div class="cf-ui-prompt-section">
+            <h3>Системный промпт</h3>
+            <div class="cf-ui-prompt-text">${this.escapeHtml(prompt.system_prompt || "").replace(/\n/g, "<br>")}</div>
+          </div>
+          
+          ${structureHtml}
+          
+          <div class="cf-ui-prompt-meta">
+            <p><small>Создан: ${prompt.created_at || ""}</small></p>
+            <p><small>Обновлён: ${prompt.updated_at || ""}</small></p>
+          </div>
+          
+          <div class="cf-ui-detail-actions">
+            <button type="button" class="button button-primary" disabled>Редактировать</button>
+            <button type="button" class="button" disabled>Сохранить</button>
+          </div>
+        </div>
+      `;
+
+      $detail.html(html).show();
+
+      // Обработчик закрытия
+      $detail.find(".cf-close-prompt-detail").on("click", function () {
+        $detail.hide();
+      });
     },
   };
 

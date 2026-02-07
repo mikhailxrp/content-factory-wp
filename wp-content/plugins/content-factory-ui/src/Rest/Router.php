@@ -9,6 +9,7 @@ use ContentFactoryUI\Rest\Controllers\TopicsController;
 use ContentFactoryUI\Rest\Controllers\ArticlesController;
 use ContentFactoryUI\Rest\Controllers\TelegramController;
 use ContentFactoryUI\Rest\Controllers\LogsController;
+use ContentFactoryUI\Rest\Controllers\PromptsController;
 
 /**
  * Регистрация REST API маршрутов
@@ -227,6 +228,13 @@ class Router {
       'methods' => 'POST',
       'callback' => [LogsController::class, 'clear'],
       'permission_callback' => [LogsController::class, 'check_permission']
+    ]);
+
+    // Prompts
+    register_rest_route(self::NAMESPACE, '/prompts', [
+      'methods' => 'GET',
+      'callback' => [PromptsController::class, 'list'],
+      'permission_callback' => [PromptsController::class, 'check_permission']
     ]);
   }
 }
