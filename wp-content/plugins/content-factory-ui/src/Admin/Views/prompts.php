@@ -7,8 +7,8 @@
   <div class="cf-ui-toolbar">
     <div class="cf-ui-toolbar-group">
       <button type="button" id="cf-add-prompt" class="button button-primary"><?php _e('Добавить промпт', 'content-factory-ui'); ?></button>
+      <button type="button" id="cf-refresh-prompts" class="button"><?php _e('Обновить', 'content-factory-ui'); ?></button>
     </div>
-    <button type="button" id="cf-refresh-prompts" class="button"><?php _e('Обновить', 'content-factory-ui'); ?></button>
   </div>
 
   <div id="cf-prompts-list" class="cf-ui-list">
