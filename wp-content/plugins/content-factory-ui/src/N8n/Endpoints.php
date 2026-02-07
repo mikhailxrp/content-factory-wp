@@ -22,7 +22,8 @@ class Endpoints {
     'list_run_ids' => '/webhook/senses/run-ids',
     'list_senses_by_run_id' => '/webhook/senses/list',
     'get_sense' => '/webhook/senses',
-    'list_prompts' => '/webhook-test/prompts/list'
+    'list_prompts' => '/webhook-test/prompts/list',
+    'update_prompt' => '/webhook-test/prompts/update'
   ];
 
   /**

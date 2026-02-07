@@ -1313,18 +1313,33 @@
     // Prompts - показать детали промпта
     showPromptDetail(prompt) {
       const $detail = $("#cf-prompt-detail");
+      $detail.data("prompt", prompt);
+      this.renderPromptDetail(prompt, false);
+      $detail.show();
+    },
 
-      // Форматируем structure_rules для красивого отображения
+    // Prompts - рендер детального вида
+    renderPromptDetail(prompt, isEditMode) {
+      const $detail = $("#cf-prompt-detail");
+      const rules =
+        typeof prompt.structure_rules === "string"
+          ? JSON.parse(prompt.structure_rules)
+          : prompt.structure_rules;
+
       let structureHtml = "";
-      if (prompt.structure_rules) {
-        const rules =
-          typeof prompt.structure_rules === "string"
-            ? JSON.parse(prompt.structure_rules)
-            : prompt.structure_rules;
 
+      if (isEditMode) {
+        const rulesJson = JSON.stringify(rules, null, 2);
+        structureHtml = `
+          <div class="cf-ui-prompt-section">
+            <h3>Правила структуры (JSON)</h3>
+            <textarea id="cf-prompt-structure-rules" rows="15" style="width: 100%; font-family: monospace; font-size: 13px;">${this.escapeHtml(rulesJson)}</textarea>
+            <p style="font-size: 12px; color: #666; margin-top: 5px;">Формат JSON. Пример: {"sections": ["Введение"], "min_steps": 5}</p>
+          </div>
+        `;
+      } else {
         structureHtml = '<div class="cf-ui-prompt-structure">';
-
-        if (rules.sections && Array.isArray(rules.sections)) {
+        if (rules && rules.sections && Array.isArray(rules.sections)) {
           structureHtml += "<h4>Секции статьи:</h4><ol>";
           rules.sections.forEach((section) => {
             structureHtml += `<li>${this.escapeHtml(section)}</li>`;
@@ -1332,32 +1347,34 @@
           structureHtml += "</ol>";
         }
 
-        // Дополнительные правила
         const additionalRules = [];
-        if (rules.min_steps)
-          additionalRules.push(`Минимум шагов: ${rules.min_steps}`);
-        if (rules.min_criteria)
-          additionalRules.push(`Минимум критериев: ${rules.min_criteria}`);
-        if (rules.min_mistakes)
-          additionalRules.push(`Минимум ошибок: ${rules.min_mistakes}`);
-        if (rules.min_examples)
-          additionalRules.push(`Минимум примеров: ${rules.min_examples}`);
-        if (rules.min_items)
-          additionalRules.push(`Минимум пунктов: ${rules.min_items}`);
-        if (rules.include_warnings)
-          additionalRules.push("Включать предупреждения");
-        if (rules.include_table) additionalRules.push("Включать таблицу");
-        if (rules.include_cta)
-          additionalRules.push("Включать призыв к действию");
-        if (rules.include_checklist) additionalRules.push("Включать чек-лист");
-        if (rules.include_examples) additionalRules.push("Включать примеры");
-        if (rules.include_faq) additionalRules.push("Включать FAQ");
-        if (rules.include_metrics) additionalRules.push("Включать метрики");
-        if (rules.include_timeline) additionalRules.push("Включать таймлайн");
-        if (rules.include_analysis) additionalRules.push("Включать анализ");
-        if (rules.focus_on_benefits) additionalRules.push("Фокус на выгодах");
-        if (rules.group_by_stages)
-          additionalRules.push("Группировать по этапам");
+        if (rules) {
+          if (rules.min_steps)
+            additionalRules.push(`Минимум шагов: ${rules.min_steps}`);
+          if (rules.min_criteria)
+            additionalRules.push(`Минимум критериев: ${rules.min_criteria}`);
+          if (rules.min_mistakes)
+            additionalRules.push(`Минимум ошибок: ${rules.min_mistakes}`);
+          if (rules.min_examples)
+            additionalRules.push(`Минимум примеров: ${rules.min_examples}`);
+          if (rules.min_items)
+            additionalRules.push(`Минимум пунктов: ${rules.min_items}`);
+          if (rules.include_warnings)
+            additionalRules.push("Включать предупреждения");
+          if (rules.include_table) additionalRules.push("Включать таблицу");
+          if (rules.include_cta)
+            additionalRules.push("Включать призыв к действию");
+          if (rules.include_checklist)
+            additionalRules.push("Включать чек-лист");
+          if (rules.include_examples) additionalRules.push("Включать примеры");
+          if (rules.include_faq) additionalRules.push("Включать FAQ");
+          if (rules.include_metrics) additionalRules.push("Включать метрики");
+          if (rules.include_timeline) additionalRules.push("Включать таймлайн");
+          if (rules.include_analysis) additionalRules.push("Включать анализ");
+          if (rules.focus_on_benefits) additionalRules.push("Фокус на выгодах");
+          if (rules.group_by_stages)
+            additionalRules.push("Группировать по этапам");
+        }
 
         if (additionalRules.length > 0) {
           structureHtml += "<h4>Дополнительные правила:</h4><ul>";
@@ -1366,49 +1383,227 @@
           });
           structureHtml += "</ul>";
         }
-
         structureHtml += "</div>";
       }
 
-      const html = `
-        <div class="cf-ui-detail-header">
-          <h2>${this.escapeHtml(prompt.template_name || "Промпт")}</h2>
-          <button type="button" class="button cf-close-prompt-detail">Закрыть</button>
-        </div>
-        <div class="cf-ui-detail-content">
-          <div class="cf-ui-prompt-info">
-            <p><strong>ID:</strong> ${prompt.id}</p>
-            <p><strong>Угол:</strong> ${this.escapeHtml(prompt.angle || "")}</p>
-            <p><strong>Тон:</strong> ${this.escapeHtml(prompt.tone || "")}</p>
-            <p><strong>Статус:</strong> ${prompt.is_active === 1 ? '<span style="color: #46b450;">Активен</span>' : '<span style="color: #999;">Неактивен</span>'}</p>
-            <p><strong>Диапазон слов:</strong> ${prompt.min_words || 0} - ${prompt.max_words || 0}</p>
-          </div>
-          
-          <div class="cf-ui-prompt-section">
-            <h3>Системный промпт</h3>
-            <div class="cf-ui-prompt-text">${this.escapeHtml(prompt.system_prompt || "").replace(/\n/g, "<br>")}</div>
-          </div>
-          
-          ${structureHtml}
-          
-          <div class="cf-ui-prompt-meta">
-            <p><small>Создан: ${prompt.created_at || ""}</small></p>
-            <p><small>Обновлён: ${prompt.updated_at || ""}</small></p>
-          </div>
-          
-          <div class="cf-ui-detail-actions">
-            <button type="button" class="button button-primary" disabled>Редактировать</button>
-            <button type="button" class="button" disabled>Сохранить</button>
-          </div>
-        </div>
-      `;
+      let html = "";
 
-      $detail.html(html).show();
+      if (isEditMode) {
+        html = `
+          <div class="cf-ui-detail-header">
+            <h2>Редактирование промпта</h2>
+            <button type="button" class="button cf-close-prompt-detail">Закрыть</button>
+          </div>
+          <div class="cf-ui-detail-content">
+            <div class="cf-ui-prompt-info">
+              <p><strong>ID:</strong> ${prompt.id} <span style="color: #999;">(не редактируется)</span></p>
+            </div>
+            
+            <div class="cf-ui-prompt-section">
+              <h3>Основная информация</h3>
+              <table class="form-table">
+                <tr>
+                  <th><label for="cf-prompt-angle">Угол *</label></th>
+                  <td><input type="text" id="cf-prompt-angle" class="regular-text" value="${this.escapeHtml(prompt.angle || "")}" required></td>
+                </tr>
+                <tr>
+                  <th><label for="cf-prompt-template-name">Название шаблона *</label></th>
+                  <td><input type="text" id="cf-prompt-template-name" class="regular-text" value="${this.escapeHtml(prompt.template_name || "")}" required></td>
+                </tr>
+                <tr>
+                  <th><label for="cf-prompt-tone">Тон</label></th>
+                  <td>
+                    <select id="cf-prompt-tone" class="regular-text">
+                      <option value="professional" ${prompt.tone === "professional" ? "selected" : ""}>Professional</option>
+                      <option value="expert" ${prompt.tone === "expert" ? "selected" : ""}>Expert</option>
+                      <option value="casual" ${prompt.tone === "casual" ? "selected" : ""}>Casual</option>
+                      <option value="friendly" ${prompt.tone === "friendly" ? "selected" : ""}>Friendly</option>
+                    </select>
+                  </td>
+                </tr>
+                <tr>
+                  <th><label for="cf-prompt-min-words">Минимум слов</label></th>
+                  <td><input type="number" id="cf-prompt-min-words" class="small-text" value="${prompt.min_words || 2000}" min="0"></td>
+                </tr>
+                <tr>
+                  <th><label for="cf-prompt-max-words">Максимум слов</label></th>
+                  <td><input type="number" id="cf-prompt-max-words" class="small-text" value="${prompt.max_words || 2500}" min="0"></td>
+                </tr>
+                <tr>
+                  <th><label for="cf-prompt-is-active">Статус</label></th>
+                  <td>
+                    <label>
+                      <input type="checkbox" id="cf-prompt-is-active" ${prompt.is_active === 1 ? "checked" : ""}>
+                      Активен
+                    </label>
+                  </td>
+                </tr>
+              </table>
+            </div>
+            
+            <div class="cf-ui-prompt-section">
+              <h3>Системный промпт *</h3>
+              <textarea id="cf-prompt-system-prompt" rows="15" style="width: 100%; font-size: 14px;">${this.escapeHtml(prompt.system_prompt || "")}</textarea>
+            </div>
+            
+            ${structureHtml}
+            
+            <div class="cf-ui-prompt-meta">
+              <p><small>Создан: ${prompt.created_at || ""}</small></p>
+              <p><small>Обновлён: ${prompt.updated_at || ""}</small></p>
+            </div>
+            
+            <div class="cf-ui-detail-actions">
+              <button type="button" class="button cf-cancel-edit-prompt">Отмена</button>
+              <button type="button" class="button button-primary cf-save-prompt">Сохранить</button>
+            </div>
+          </div>
+        `;
+      } else {
+        html = `
+          <div class="cf-ui-detail-header">
+            <h2>${this.escapeHtml(prompt.template_name || "Промпт")}</h2>
+            <button type="button" class="button cf-close-prompt-detail">Закрыть</button>
+          </div>
+          <div class="cf-ui-detail-content">
+            <div class="cf-ui-prompt-info">
+              <p><strong>ID:</strong> ${prompt.id}</p>
+              <p><strong>Угол:</strong> ${this.escapeHtml(prompt.angle || "")}</p>
+              <p><strong>Тон:</strong> ${this.escapeHtml(prompt.tone || "")}</p>
+              <p><strong>Статус:</strong> ${prompt.is_active === 1 ? '<span style="color: #46b450;">Активен</span>' : '<span style="color: #999;">Неактивен</span>'}</p>
+              <p><strong>Диапазон слов:</strong> ${prompt.min_words || 0} - ${prompt.max_words || 0}</p>
+            </div>
+            
+            <div class="cf-ui-prompt-section">
+              <h3>Системный промпт</h3>
+              <div class="cf-ui-prompt-text">${this.escapeHtml(prompt.system_prompt || "").replace(/\n/g, "<br>")}</div>
+            </div>
+            
+            ${structureHtml}
+            
+            <div class="cf-ui-prompt-meta">
+              <p><small>Создан: ${prompt.created_at || ""}</small></p>
+              <p><small>Обновлён: ${prompt.updated_at || ""}</small></p>
+            </div>
+            
+            <div class="cf-ui-detail-actions">
+              <button type="button" class="button button-primary cf-edit-prompt">Редактировать</button>
+            </div>
+          </div>
+        `;
+      }
 
-      // Обработчик закрытия
+      $detail.html(html);
+
       $detail.find(".cf-close-prompt-detail").on("click", function () {
         $detail.hide();
       });
+
+      $detail.find(".cf-edit-prompt").on("click", () => {
+        const currentPrompt = $detail.data("prompt");
+        this.renderPromptDetail(currentPrompt, true);
+      });
+
+      $detail.find(".cf-cancel-edit-prompt").on("click", () => {
+        const currentPrompt = $detail.data("prompt");
+        this.renderPromptDetail(currentPrompt, false);
+      });
+
+      $detail.find(".cf-save-prompt").on("click", () => {
+        this.savePrompt();
+      });
+    },
+
+    // Prompts - сохранить промпт
+    savePrompt() {
+      const $detail = $("#cf-prompt-detail");
+      const prompt = $detail.data("prompt");
+
+      const angle = $("#cf-prompt-angle").val().trim();
+      const templateName = $("#cf-prompt-template-name").val().trim();
+      const systemPrompt = $("#cf-prompt-system-prompt").val().trim();
+      const tone = $("#cf-prompt-tone").val();
+      const minWords = parseInt($("#cf-prompt-min-words").val()) || 2000;
+      const maxWords = parseInt($("#cf-prompt-max-words").val()) || 2500;
+      const isActive = $("#cf-prompt-is-active").is(":checked") ? 1 : 0;
+      const structureRulesText = $("#cf-prompt-structure-rules").val().trim();
+
+      if (!angle || !templateName || !systemPrompt) {
+        this.showNotice(
+          "Заполните все обязательные поля (отмечены *)",
+          "error",
+        );
+        return;
+      }
+
+      let structureRules = {};
+      if (structureRulesText) {
+        try {
+          structureRules = JSON.parse(structureRulesText);
+        } catch (e) {
+          this.showNotice(
+            "Ошибка в JSON правил структуры: " + e.message,
+            "error",
+          );
+          return;
+        }
+      }
+
+      const data = {
+        angle: angle,
+        template_name: templateName,
+        system_prompt: systemPrompt,
+        structure_rules: structureRules,
+        tone: tone,
+        min_words: minWords,
+        max_words: maxWords,
+        is_active: isActive,
+      };
+
+      console.log("Сохранение промпта:", data);
+
+      const $saveBtn = $detail.find(".cf-save-prompt");
+      const originalText = $saveBtn.text();
+      $saveBtn.prop("disabled", true).text("Сохранение...");
+
+      this.apiRequest(`prompts/${prompt.id}`, "PUT", data)
+        .done((response) => {
+          console.log("Ответ от сервера:", response);
+
+          if (response.success) {
+            this.showNotice(
+              response.message || "Промпт успешно обновлён",
+              "success",
+            );
+
+            const updatedPrompt = {
+              ...prompt,
+              ...data,
+              updated_at: new Date()
+                .toISOString()
+                .slice(0, 19)
+                .replace("T", " "),
+            };
+
+            $detail.data("prompt", updatedPrompt);
+            this.renderPromptDetail(updatedPrompt, false);
+            this.loadPrompts();
+          } else {
+            this.showNotice(
+              response.message || "Ошибка при сохранении",
+              "error",
+            );
+          }
+        })
+        .fail((xhr) => {
+          console.error("Ошибка сохранения:", xhr);
+          const errorMsg =
+            xhr.responseJSON?.message || "Ошибка при сохранении промпта";
+          this.showNotice(errorMsg, "error");
+        })
+        .always(() => {
+          $saveBtn.prop("disabled", false).text(originalText);
+        });
     },
   };
 

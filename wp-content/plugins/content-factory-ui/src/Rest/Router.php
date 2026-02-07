@@ -236,5 +236,11 @@ class Router {
       'callback' => [PromptsController::class, 'list'],
       'permission_callback' => [PromptsController::class, 'check_permission']
     ]);
+
+    register_rest_route(self::NAMESPACE, '/prompts/(?P<id>[\d]+)', [
+      'methods' => 'PUT',
+      'callback' => [PromptsController::class, 'update'],
+      'permission_callback' => [PromptsController::class, 'check_permission']
+    ]);
   }
 }
