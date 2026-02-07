@@ -1540,7 +1540,9 @@
         template_name: "",
         system_prompt: "",
         structure_rules: {
-          sections: [],
+          sections: ["Введение", "Основная часть", "Заключение"],
+          min_steps: 3,
+          include_examples: true,
         },
         tone: "professional",
         min_words: 2000,
@@ -1561,6 +1563,7 @@
     savePrompt() {
       const $detail = $("#cf-prompt-detail");
       const prompt = $detail.data("prompt");
+      const isNew = $detail.data("isNew") === true;
 
       const angle = $("#cf-prompt-angle").val().trim();
       const templateName = $("#cf-prompt-template-name").val().trim();
@@ -1603,33 +1606,31 @@
         is_active: isActive,
       };
 
-      console.log("Сохранение промпта:", data);
+      console.log(isNew ? "Создание промпта:" : "Обновление промпта:", data);
 
       const $saveBtn = $detail.find(".cf-save-prompt");
       const originalText = $saveBtn.text();
-      $saveBtn.prop("disabled", true).text("Сохранение...");
+      $saveBtn
+        .prop("disabled", true)
+        .text(isNew ? "Создание..." : "Сохранение...");
 
-      this.apiRequest(`prompts/${prompt.id}`, "PUT", data)
+      // Для создания - POST на /prompts, для обновления - PUT на /prompts/{id}
+      const endpoint = isNew ? "prompts" : `prompts/${prompt.id}`;
+      const method = isNew ? "POST" : "PUT";
+
+      this.apiRequest(endpoint, method, data)
         .done((response) => {
           console.log("Ответ от сервера:", response);
 
           if (response.success) {
             this.showNotice(
-              response.message || "Промпт успешно обновлён",
+              response.message ||
+                (isNew ? "Промпт успешно создан" : "Промпт успешно обновлён"),
               "success",
             );
 
-            const updatedPrompt = {
-              ...prompt,
-              ...data,
-              updated_at: new Date()
-                .toISOString()
-                .slice(0, 19)
-                .replace("T", " "),
-            };
-
-            $detail.data("prompt", updatedPrompt);
-            this.renderPromptDetail(updatedPrompt, false);
+            // Закрываем форму и обновляем список
+            $detail.hide();
             this.loadPrompts();
           } else {
             this.showNotice(
