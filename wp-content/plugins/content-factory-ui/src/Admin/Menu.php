@@ -9,6 +9,7 @@ use ContentFactoryUI\Admin\Pages\TopicsPage;
 use ContentFactoryUI\Admin\Pages\ArticlesPage;
 use ContentFactoryUI\Admin\Pages\TelegramPage;
 use ContentFactoryUI\Admin\Pages\LogsPage;
+use ContentFactoryUI\Admin\Pages\PromptsPage;
 
 /**
  * Регистрация меню и роутинг страниц админки
@@ -73,6 +74,15 @@ class Menu {
       'edit_posts',
       'content-factory-telegram',
       [TelegramPage::class, 'render']
+    );
+
+    add_submenu_page(
+      'content-factory',
+      __('Промпты', 'content-factory-ui'),
+      __('Промпты', 'content-factory-ui'),
+      'edit_posts',
+      'content-factory-prompts',
+      [PromptsPage::class, 'render']
     );
 
     add_submenu_page(
