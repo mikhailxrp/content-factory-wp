@@ -14,10 +14,16 @@ class PostEditorController {
    * Генерация статьи из редактора
    */
   public static function generate_article($request) {
+    error_log('=== [PostEditorController] НАЧАЛО generate_article ===');
+    
     $post_id = $request->get_param('id');
     $data = $request->get_json_params();
+    
+    error_log('[PostEditorController] Post ID: ' . $post_id);
+    error_log('[PostEditorController] Входящие данные: ' . print_r($data, true));
 
     if (empty($post_id)) {
+      error_log('[PostEditorController] ОШИБКА: Post ID пустой');
       return rest_ensure_response([
         'success' => false,
         'message' => __('Не указан ID поста', 'content-factory-ui')
@@ -44,34 +50,48 @@ class PostEditorController {
     $client = new Client();
     $endpoint = Endpoints::get('generate_article_from_editor');
     
+    error_log('[PostEditorController] Endpoint из Endpoints::get(): ' . ($endpoint ?? 'NULL'));
+    error_log('[PostEditorController] N8N URL из настроек: ' . \ContentFactoryUI\Settings\SettingsRepository::get('n8n_url'));
+    
     if (!$endpoint) {
+      error_log('[PostEditorController] ОШИБКА: Endpoint не настроен');
       return rest_ensure_response([
         'success' => false,
         'message' => __('Endpoint generate_article_from_editor не настроен', 'content-factory-ui')
       ]);
     }
 
-    error_log('[PostEditorController] Генерация статьи для поста ID: ' . $post_id);
-    error_log('[PostEditorController] Endpoint: ' . $endpoint);
-    error_log('[PostEditorController] Данные: ' . json_encode($data));
-    
-    // Отправляем данные в N8N
-    $response = $client->post($endpoint, [
+    $payload = [
       'post_id' => $post_id,
       'role' => sanitize_text_field($data['role']),
       'prompt' => sanitize_textarea_field($data['prompt']),
       'sections' => sanitize_textarea_field($data['sections'])
-    ]);
+    ];
+    
+    error_log('[PostEditorController] Генерация статьи для поста ID: ' . $post_id);
+    error_log('[PostEditorController] Endpoint: ' . $endpoint);
+    error_log('[PostEditorController] Payload для отправки: ' . json_encode($payload, JSON_UNESCAPED_UNICODE));
+    
+    // Отправляем данные в N8N
+    error_log('[PostEditorController] Отправка запроса в N8N...');
+    $response = $client->post($endpoint, $payload);
+    
+    error_log('[PostEditorController] Тип ответа: ' . gettype($response));
+    error_log('[PostEditorController] Ответ от N8N: ' . print_r($response, true));
 
     if (is_wp_error($response)) {
-      error_log('[PostEditorController] Ошибка генерации: ' . $response->get_error_message());
+      error_log('[PostEditorController] ОШИБКА WP_Error: ' . $response->get_error_message());
+      error_log('[PostEditorController] Код ошибки: ' . $response->get_error_code());
+      error_log('[PostEditorController] Данные ошибки: ' . print_r($response->get_error_data(), true));
+      
       return rest_ensure_response([
         'success' => false,
         'message' => $response->get_error_message()
       ]);
     }
 
-    error_log('[PostEditorController] Генерация запущена успешно: ' . json_encode($response));
+    error_log('[PostEditorController] Генерация запущена успешно');
+    error_log('[PostEditorController] Ответ (JSON): ' . json_encode($response, JSON_UNESCAPED_UNICODE));
 
     // Сохраняем информацию о запущенной генерации в post meta
     update_post_meta($post_id, '_cf_generation_status', 'started');
