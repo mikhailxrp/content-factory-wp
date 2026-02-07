@@ -232,9 +232,16 @@ class Router {
 
     // Prompts
     register_rest_route(self::NAMESPACE, '/prompts', [
-      'methods' => 'GET',
-      'callback' => [PromptsController::class, 'list'],
-      'permission_callback' => [PromptsController::class, 'check_permission']
+      [
+        'methods' => 'GET',
+        'callback' => [PromptsController::class, 'list'],
+        'permission_callback' => [PromptsController::class, 'check_permission']
+      ],
+      [
+        'methods' => 'POST',
+        'callback' => [PromptsController::class, 'create'],
+        'permission_callback' => [PromptsController::class, 'check_permission']
+      ]
     ]);
 
     register_rest_route(self::NAMESPACE, '/prompts/(?P<id>[\d]+)', [

@@ -59,9 +59,7 @@
 
       // Prompts
       $("#cf-refresh-prompts").on("click", () => this.loadPrompts());
-      $("#cf-add-prompt").on("click", () => {
-        alert("Функционал добавления промпта будет реализован позже");
-      });
+      $("#cf-add-prompt").on("click", () => this.showCreatePromptForm());
     },
 
     loadPageData() {
@@ -1314,6 +1312,7 @@
     showPromptDetail(prompt) {
       const $detail = $("#cf-prompt-detail");
       $detail.data("prompt", prompt);
+      $detail.data("isNew", false); // Это существующий промпт
       this.renderPromptDetail(prompt, false);
       $detail.show();
     },
@@ -1321,6 +1320,7 @@
     // Prompts - рендер детального вида
     renderPromptDetail(prompt, isEditMode) {
       const $detail = $("#cf-prompt-detail");
+      const isNew = $detail.data("isNew") === true;
       const rules =
         typeof prompt.structure_rules === "string"
           ? JSON.parse(prompt.structure_rules)
@@ -1391,13 +1391,17 @@
       if (isEditMode) {
         html = `
           <div class="cf-ui-detail-header">
-            <h2>Редактирование промпта</h2>
+            <h2>${isNew ? "Создание нового промпта" : "Редактирование промпта"}</h2>
             <button type="button" class="button cf-close-prompt-detail">Закрыть</button>
           </div>
           <div class="cf-ui-detail-content">
-            <div class="cf-ui-prompt-info">
+            ${
+              !isNew
+                ? `<div class="cf-ui-prompt-info">
               <p><strong>ID:</strong> ${prompt.id} <span style="color: #999;">(не редактируется)</span></p>
-            </div>
+            </div>`
+                : ""
+            }
             
             <div class="cf-ui-prompt-section">
               <h3>Основная информация</h3>
@@ -1448,14 +1452,18 @@
             
             ${structureHtml}
             
-            <div class="cf-ui-prompt-meta">
+            ${
+              !isNew
+                ? `<div class="cf-ui-prompt-meta">
               <p><small>Создан: ${prompt.created_at || ""}</small></p>
               <p><small>Обновлён: ${prompt.updated_at || ""}</small></p>
-            </div>
+            </div>`
+                : ""
+            }
             
             <div class="cf-ui-detail-actions">
-              <button type="button" class="button cf-cancel-edit-prompt">Отмена</button>
-              <button type="button" class="button button-primary cf-save-prompt">Сохранить</button>
+              <button type="button" class="button cf-cancel-edit-prompt">${isNew ? "Отмена" : "Отмена"}</button>
+              <button type="button" class="button button-primary cf-save-prompt">${isNew ? "Создать" : "Сохранить"}</button>
             </div>
           </div>
         `;
@@ -1505,8 +1513,15 @@
       });
 
       $detail.find(".cf-cancel-edit-prompt").on("click", () => {
-        const currentPrompt = $detail.data("prompt");
-        this.renderPromptDetail(currentPrompt, false);
+        const isNew = $detail.data("isNew") === true;
+        if (isNew) {
+          // Если это новый промпт, просто закрываем форму
+          $detail.hide();
+        } else {
+          // Если редактируем существующий, возвращаемся к просмотру
+          const currentPrompt = $detail.data("prompt");
+          this.renderPromptDetail(currentPrompt, false);
+        }
       });
 
       $detail.find(".cf-save-prompt").on("click", () => {

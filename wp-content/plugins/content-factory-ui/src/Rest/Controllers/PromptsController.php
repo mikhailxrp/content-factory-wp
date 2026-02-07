@@ -45,6 +45,58 @@ class PromptsController {
   }
 
   /**
+   * Создать новый промпт
+   */
+  public static function create($request) {
+    $data = $request->get_json_params();
+    
+    error_log('=== Создание нового промпта ===');
+    error_log('Данные: ' . print_r($data, true));
+    
+    // Валидация обязательных полей
+    if (empty($data['angle']) || empty($data['template_name']) || empty($data['system_prompt'])) {
+      return rest_ensure_response([
+        'success' => false,
+        'message' => 'Заполните все обязательные поля'
+      ]);
+    }
+    
+    // Подготовка данных для отправки в n8n
+    $payload = [
+      'angle' => sanitize_text_field($data['angle']),
+      'template_name' => sanitize_text_field($data['template_name']),
+      'system_prompt' => sanitize_textarea_field($data['system_prompt']),
+      'structure_rules' => $data['structure_rules'] ?? [], // JSON объект
+      'tone' => sanitize_text_field($data['tone'] ?? 'professional'),
+      'min_words' => intval($data['min_words'] ?? 2000),
+      'max_words' => intval($data['max_words'] ?? 2500),
+      'is_active' => intval($data['is_active'] ?? 1)
+    ];
+    
+    $client = new Client();
+    $endpoint = Endpoints::get('create_prompt');
+    
+    error_log('Отправка данных в n8n: ' . print_r($payload, true));
+    
+    $response = $client->post($endpoint, $payload);
+    error_log('Ответ от n8n: ' . print_r($response, true));
+
+    if (is_wp_error($response)) {
+      error_log('Ошибка WP: ' . $response->get_error_message());
+      return rest_ensure_response([
+        'success' => false,
+        'message' => $response->get_error_message()
+      ]);
+    }
+
+    return rest_ensure_response([
+      'success' => true,
+      'message' => 'Промпт успешно создан',
+      'data' => $response
+    ]);
+  }
+
+  /**
    * Обновить промпт
    */
   public static function update($request) {
