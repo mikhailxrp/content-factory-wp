@@ -78,7 +78,6 @@
             break;
           case "articles":
             this.loadRunIdsForArticles();
-            this.loadArticles();
             break;
           case "telegram":
             this.loadArticlesForSelect();

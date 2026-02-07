@@ -32,7 +32,14 @@
   </div>
 
   <div id="cf-articles-list" class="cf-ui-list">
-    <!-- Список статей заполняется через JS -->
+    <div class="cf-ui-notice info">
+      <p><strong>Инструкция:</strong></p>
+      <ol style="margin: 10px 0 0 20px; padding: 0;">
+        <li>Выберите запуск генерации</li>
+        <li>Выберите статус статьи</li>
+        <li>Нажмите кнопку "Загрузить статьи"</li>
+      </ol>
+    </div>
   </div>
 
   <div id="cf-article-detail" class="cf-ui-detail" style="display: none;">
