@@ -22,10 +22,10 @@ class Endpoints {
     'list_run_ids' => '/webhook/senses/run-ids',
     'list_senses_by_run_id' => '/webhook/senses/list',
     'get_sense' => '/webhook/senses',
-    'list_prompts' => '/webhook-test/prompts/list',
-    'create_prompt' => '/webhook-test/prompts/create',
-    'update_prompt' => '/webhook-test/prompts/update',
-    'delete_prompt' => '/webhook-test/prompts/delete'
+    'list_prompts' => '/webhook/prompts/list',
+    'create_prompt' => '/webhook/prompts/create',
+    'update_prompt' => '/webhook/prompts/update',
+    'delete_prompt' => '/webhook/prompts/delete'
   ];
 
   /**
