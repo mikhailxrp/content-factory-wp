@@ -5,6 +5,7 @@ namespace ContentFactoryUI;
 use ContentFactoryUI\Admin\Menu;
 use ContentFactoryUI\Rest\Router;
 use ContentFactoryUI\Support\Assets;
+use ContentFactoryUI\Support\EditorAssets;
 use ContentFactoryUI\WP\PostStatusSync;
 
 /**
@@ -48,6 +49,9 @@ class Plugin {
     if (is_admin()) {
       add_action('admin_menu', [Menu::class, 'register']);
       add_action('admin_enqueue_scripts', [Assets::class, 'enqueue']);
+      
+      // Assets для редактора Gutenberg
+      add_action('enqueue_block_editor_assets', [EditorAssets::class, 'enqueue']);
     }
   }
 }

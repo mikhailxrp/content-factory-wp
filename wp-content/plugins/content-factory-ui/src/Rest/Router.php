@@ -10,6 +10,7 @@ use ContentFactoryUI\Rest\Controllers\ArticlesController;
 use ContentFactoryUI\Rest\Controllers\TelegramController;
 use ContentFactoryUI\Rest\Controllers\LogsController;
 use ContentFactoryUI\Rest\Controllers\PromptsController;
+use ContentFactoryUI\Rest\Controllers\PostEditorController;
 
 /**
  * Регистрация REST API маршрутов
@@ -255,6 +256,19 @@ class Router {
         'callback' => [PromptsController::class, 'delete'],
         'permission_callback' => [PromptsController::class, 'check_permission']
       ]
+    ]);
+
+    // Post Editor - генерация статей из редактора
+    register_rest_route(self::NAMESPACE, '/posts/(?P<id>[\d]+)/generate-article', [
+      'methods' => 'POST',
+      'callback' => [PostEditorController::class, 'generate_article'],
+      'permission_callback' => [PostEditorController::class, 'check_permission']
+    ]);
+
+    register_rest_route(self::NAMESPACE, '/posts/(?P<id>[\d]+)/check-article-status', [
+      'methods' => 'GET',
+      'callback' => [PostEditorController::class, 'check_status'],
+      'permission_callback' => [PostEditorController::class, 'check_permission']
     ]);
   }
 }

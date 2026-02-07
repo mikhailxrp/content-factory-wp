@@ -25,7 +25,9 @@ class Endpoints {
     'list_prompts' => '/webhook/prompts/list',
     'create_prompt' => '/webhook/prompts/create',
     'update_prompt' => '/webhook/prompts/update',
-    'delete_prompt' => '/webhook/prompts/delete'
+    'delete_prompt' => '/webhook/prompts/delete',
+    'generate_article_from_editor' => '/webhook/generate-article-from-editor',
+    'check_editor_article_status' => '/webhook/check-editor-article-status'
   ];
 
   /**

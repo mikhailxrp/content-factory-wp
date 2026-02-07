@@ -91,4 +91,29 @@ class PostPublisher {
   public static function link_to_n8n($post_id, $n8n_article_id) {
     return update_post_meta($post_id, 'cf_ui_article_id', $n8n_article_id);
   }
+
+  /**
+   * Обновить контент поста (для генерации из редактора)
+   */
+  public static function update_post_content($post_id, $content, $title = null) {
+    $update_data = [
+      'ID' => $post_id,
+      'post_content' => wp_kses_post($content)
+    ];
+
+    // Опционально обновляем заголовок
+    if (!empty($title)) {
+      $update_data['post_title'] = sanitize_text_field($title);
+    }
+
+    $result = wp_update_post($update_data, true);
+
+    if (is_wp_error($result)) {
+      error_log('[PostPublisher] Ошибка обновления поста: ' . $result->get_error_message());
+      return $result;
+    }
+
+    error_log('[PostPublisher] Пост ID ' . $post_id . ' успешно обновлен');
+    return $result;
+  }
 }
