@@ -1529,7 +1529,35 @@
       });
     },
 
-    // Prompts - сохранить промпт
+    // Prompts - показать форму создания промпта
+    showCreatePromptForm() {
+      const $detail = $("#cf-prompt-detail");
+
+      // Создаём пустой объект промпта с дефолтными значениями
+      const newPrompt = {
+        id: null,
+        angle: "",
+        template_name: "",
+        system_prompt: "",
+        structure_rules: {
+          sections: [],
+        },
+        tone: "professional",
+        min_words: 2000,
+        max_words: 2500,
+        is_active: 1,
+        created_at: "",
+        updated_at: "",
+      };
+
+      $detail.data("prompt", newPrompt);
+      $detail.data("isNew", true);
+
+      this.renderPromptDetail(newPrompt, true);
+      $detail.show();
+    },
+
+    // Prompts - сохранить промпт (создание или обновление)
     savePrompt() {
       const $detail = $("#cf-prompt-detail");
       const prompt = $detail.data("prompt");
