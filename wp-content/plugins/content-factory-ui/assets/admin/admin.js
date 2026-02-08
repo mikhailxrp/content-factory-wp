@@ -456,10 +456,24 @@
         const title = `${item.service} — ${item.audience}`;
         const problem = item.problem || "";
         const date = item.created_at || "";
+        const regenState = item.regen_state;
+        
+        // Определяем класс и статус в зависимости от regen_state
+        let stateClass = '';
+        let stateLabel = '';
+        
+        if (regenState === 'exhausted') {
+          stateClass = 'cf-ui-sense-exhausted';
+          stateLabel = '<span class="cf-ui-sense-status cf-ui-sense-status-exhausted">⚠️ Смысл исчерпан, требуется замена</span>';
+        } else if (regenState === 'ok' || regenState === null) {
+          stateClass = 'cf-ui-sense-active';
+          stateLabel = '';
+        }
 
         return `
-          <div class="cf-ui-list-item" data-id="${item.id}" data-meaning-id="${item.meaning_id}">
+          <div class="cf-ui-list-item ${stateClass}" data-id="${item.id}" data-meaning-id="${item.meaning_id}">
             <h3>${this.escapeHtml(title)}</h3>
+            ${stateLabel}
             ${problem ? `<p><strong>Проблема:</strong> ${this.escapeHtml(this.truncate(problem, 150))}</p>` : ""}
             <div class="cf-ui-meta">
               <span>ID: ${item.meaning_id}</span> | 

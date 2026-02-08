@@ -579,6 +579,49 @@
   visibility: hidden;
 }
 
+/* Senses - состояния regen_state */
+.cf-ui-sense-active {
+  background: #f0f9f1 !important;
+  border-left-color: #46b450 !important;
+}
+
+.cf-ui-sense-active:hover {
+  background: #e7f5e8 !important;
+}
+
+.cf-ui-sense-active.active {
+  background: #dff0e0 !important;
+  border-left-color: #2e7d32 !important;
+}
+
+.cf-ui-sense-exhausted {
+  background: #fef7f1 !important;
+  border-left-color: #dc3232 !important;
+}
+
+.cf-ui-sense-exhausted:hover {
+  background: #fde9e4 !important;
+}
+
+.cf-ui-sense-exhausted.active {
+  background: #fcddd6 !important;
+  border-left-color: #b71c1c !important;
+}
+
+.cf-ui-sense-status {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.cf-ui-sense-status-exhausted {
+  background: #dc3232;
+  color: #fff;
+}
+
 /* Responsive */
 @media (max-width: 782px) {
   .cf-ui-wrap {
