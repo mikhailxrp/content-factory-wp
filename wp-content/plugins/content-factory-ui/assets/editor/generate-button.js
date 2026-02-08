@@ -73,6 +73,13 @@
         return;
       }
 
+      // Валидация диапазона min_words
+      const minWordsValue = parseInt(minWords);
+      if (minWordsValue < 500 || minWordsValue > 2200) {
+        setError("Минимальное количество слов должно быть от 500 до 2200");
+        return;
+      }
+
       setIsGenerating(true);
       setError(null);
       setNotificationShown(false);
@@ -191,13 +198,35 @@
 
             const errorMsg =
               response.data.error_message || "Ошибка при генерации статьи";
-            setError(errorMsg);
+
+            // Проверяем, если это ошибка "Max attempts reached"
+            let userFriendlyError = errorMsg;
+            if (
+              errorMsg.includes("Max attempts reached") &&
+              errorMsg.includes("Suggest reduce min_words")
+            ) {
+              // Извлекаем количество слов из ошибки
+              const wordCountMatch = errorMsg.match(/word_count=(\d+)/);
+              const minWordsMatch = errorMsg.match(/min_words=(\d+)/);
+              const wordCount = wordCountMatch
+                ? wordCountMatch[1]
+                : "неизвестно";
+              const minWords = minWordsMatch ? minWordsMatch[1] : "неизвестно";
+
+              userFriendlyError = `Статья не сгенерирована. AI сгенерировал только ${wordCount} слов из требуемых ${minWords}.\n\nДля успешной генерации уменьшите минимальное количество слов или упростите промпт.`;
+            }
+
+            setError(userFriendlyError);
             setIsGenerating(false);
 
-            createNotice("error", errorMsg, {
-              type: "snackbar",
-              isDismissible: true,
-            });
+            // Показываем уведомление только один раз
+            if (!notificationShown) {
+              createNotice("error", userFriendlyError, {
+                type: "snackbar",
+                isDismissible: true,
+              });
+              setNotificationShown(true);
+            }
           }
           // Если status === 'processing' или 'started', продолжаем polling
         }
@@ -304,8 +333,10 @@
               value: minWords,
               onChange: setMinWords,
               type: "number",
+              min: 500,
+              max: 2200,
               placeholder: "2000",
-              help: "Минимальное количество слов в статье",
+              help: "Минимальное количество слов в статье (от 500 до 2200)",
             }),
           ),
           wp.element.createElement(
