@@ -118,7 +118,22 @@
           method: "GET",
         });
 
+        console.log("=== CHECK STATUS RESPONSE ===");
+        console.log("Full response:", response);
+        console.log("response.success:", response.success);
+        console.log("response.data:", response.data);
+        console.log("response.data type:", typeof response.data);
+        console.log("Is array?", Array.isArray(response.data));
+
         if (response.success && response.data) {
+          console.log("response.data.status:", response.data.status);
+          console.log("response.data.content exists:", !!response.data.content);
+          console.log(
+            "response.data.content length:",
+            response.data.content?.length,
+          );
+          console.log("response.data.title:", response.data.title);
+
           const status = response.data.status;
 
           if (status === "completed") {
@@ -130,15 +145,48 @@
 
             // Обновляем контент в редакторе
             if (response.data.content) {
+              console.log("=== UPDATING EDITOR ===");
+              console.log(
+                "Content to set (first 200 chars):",
+                response.data.content.substring(0, 200),
+              );
+              console.log("Title to set:", response.data.title);
+              console.log(
+                "Current post content before update:",
+                wp.data
+                  .select("core/editor")
+                  .getEditedPostContent()
+                  .substring(0, 100),
+              );
+
               editPost({
                 content: response.data.content,
                 ...(response.data.title && { title: response.data.title }),
               });
 
+              console.log("editPost() called");
+
+              // Проверяем контент после обновления
+              setTimeout(() => {
+                const updatedContent = wp.data
+                  .select("core/editor")
+                  .getEditedPostContent();
+                console.log(
+                  "Content after editPost() (first 200 chars):",
+                  updatedContent.substring(0, 200),
+                );
+                console.log(
+                  "Content updated successfully:",
+                  updatedContent.length > 0,
+                );
+              }, 100);
+
               createNotice("success", "Статья успешно сгенерирована!", {
                 type: "snackbar",
                 isDismissible: true,
               });
+            } else {
+              console.warn("No content in response.data!");
             }
 
             setIsGenerating(false);

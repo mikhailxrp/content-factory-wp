@@ -163,11 +163,25 @@ class PostEditorController {
       ]);
     }
 
-    error_log('[PostEditorController] Статус получен: ' . json_encode($response));
+    error_log('[PostEditorController] Статус получен: ' . json_encode($response, JSON_UNESCAPED_UNICODE));
+    error_log('[PostEditorController] Тип response: ' . gettype($response));
+    error_log('[PostEditorController] Is array: ' . (is_array($response) ? 'YES' : 'NO'));
+    
+    // Если N8N вернул массив, берём первый элемент
+    if (is_array($response) && isset($response[0]) && is_array($response[0])) {
+      error_log('[PostEditorController] Response is array, taking first element');
+      $response = $response[0];
+      error_log('[PostEditorController] Response after extraction: ' . json_encode($response, JSON_UNESCAPED_UNICODE));
+    }
 
     // Если статья готова, обновляем пост
     if (isset($response['status']) && $response['status'] === 'completed') {
+      error_log('[PostEditorController] Status is COMPLETED');
+      
       if (!empty($response['content'])) {
+        error_log('[PostEditorController] Content exists, length: ' . strlen($response['content']));
+        error_log('[PostEditorController] Title: ' . ($response['title'] ?? 'NO TITLE'));
+        
         PostPublisher::update_post_content(
           $post_id,
           $response['content'],
@@ -178,13 +192,21 @@ class PostEditorController {
         update_post_meta($post_id, '_cf_generation_status', 'completed');
         update_post_meta($post_id, '_cf_generation_completed_at', current_time('mysql'));
         
-        error_log('[PostEditorController] Контент поста обновлен');
+        error_log('[PostEditorController] Контент поста обновлен в БД');
+      } else {
+        error_log('[PostEditorController] WARNING: Content is empty!');
       }
     } elseif (isset($response['status']) && $response['status'] === 'error') {
+      error_log('[PostEditorController] Status is ERROR');
       // Обновляем статус на ошибку
       update_post_meta($post_id, '_cf_generation_status', 'error');
       update_post_meta($post_id, '_cf_generation_error', $response['error_message'] ?? 'Unknown error');
+    } else {
+      error_log('[PostEditorController] Status: ' . ($response['status'] ?? 'UNKNOWN'));
     }
+
+    error_log('[PostEditorController] Возвращаем ответ в JavaScript');
+    error_log('[PostEditorController] Response to JS: ' . json_encode($response, JSON_UNESCAPED_UNICODE));
 
     return rest_ensure_response([
       'success' => true,
