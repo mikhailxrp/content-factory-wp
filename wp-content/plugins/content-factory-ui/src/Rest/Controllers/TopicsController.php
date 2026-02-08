@@ -99,7 +99,9 @@ class TopicsController {
     
     $endpoint = Endpoints::get('update_topics');
     
-    $response = $client->post($endpoint . '?run_id=' . urlencode($run_id));
+    $response = $client->post($endpoint . '?run_id=' . urlencode($run_id), [
+      'mode' => 'regenerate'
+    ]);
 
     if (is_wp_error($response)) {
       return rest_ensure_response([
