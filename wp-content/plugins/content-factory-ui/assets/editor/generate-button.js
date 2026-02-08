@@ -139,6 +139,20 @@
           method: "GET",
         });
 
+        console.log("=== CHECK ARTICLE STATUS ===");
+        console.log("Response:", response);
+        console.log("response.success:", response.success);
+        console.log("response.data:", response.data);
+
+        if (response.data) {
+          console.log("Status:", response.data.status);
+          console.log("Post ID:", response.data.post_id);
+          console.log("Has content:", !!response.data.content);
+          console.log("Content length:", response.data.content?.length);
+          console.log("Title:", response.data.title);
+          console.log("Error message:", response.data.error_message);
+        }
+
         if (response.success && response.data) {
           const status = response.data.status;
 
