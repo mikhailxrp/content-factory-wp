@@ -25,6 +25,7 @@
     const [keywords, setKeywords] = useState("");
     const [error, setError] = useState(null);
     const [pollingInterval, setPollingInterval] = useState(null);
+    const [notificationShown, setNotificationShown] = useState(false);
 
     // Получаем ID текущего поста
     const postId = useSelect((select) => {
@@ -52,6 +53,7 @@
     const closeModal = () => {
       setIsModalOpen(false);
       setError(null);
+      setNotificationShown(false);
       if (pollingInterval) {
         clearInterval(pollingInterval);
         setPollingInterval(null);
@@ -73,6 +75,7 @@
 
       setIsGenerating(true);
       setError(null);
+      setNotificationShown(false);
 
       try {
         // Преобразуем keywords из строки в массив
@@ -153,10 +156,14 @@
                 ...(response.data.title && { title: response.data.title }),
               });
 
-              createNotice("success", "Статья успешно сгенерирована!", {
-                type: "snackbar",
-                isDismissible: true,
-              });
+              // Показываем уведомление только один раз
+              if (!notificationShown) {
+                createNotice("success", "Статья успешно сгенерирована!", {
+                  type: "snackbar",
+                  isDismissible: true,
+                });
+                setNotificationShown(true);
+              }
             }
 
             setIsGenerating(false);
