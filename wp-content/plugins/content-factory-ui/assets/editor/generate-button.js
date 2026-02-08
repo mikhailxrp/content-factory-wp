@@ -75,8 +75,8 @@
 
       // Валидация диапазона min_words
       const minWordsValue = parseInt(minWords);
-      if (minWordsValue < 500 || minWordsValue > 2200) {
-        setError("Минимальное количество слов должно быть от 500 до 2200");
+      if (minWordsValue < 350 || minWordsValue > 2200) {
+        setError("Минимальное количество слов должно быть от 350 до 2200");
         return;
       }
 
@@ -213,7 +213,7 @@
                 : "неизвестно";
               const minWords = minWordsMatch ? minWordsMatch[1] : "неизвестно";
 
-              userFriendlyError = `Статья не сгенерирована. AI сгенерировал только ${wordCount} слов из требуемых ${minWords}.\n\nДля успешной генерации уменьшите минимальное количество слов или упростите промпт.`;
+              userFriendlyError = `Статья не сгенерирована. AI сгенерировал только ${wordCount} слов из требуемых ${minWords}.\n\nУменьшите минимальное количество слов и попробуйте снова.`;
             }
 
             setError(userFriendlyError);
@@ -333,10 +333,10 @@
               value: minWords,
               onChange: setMinWords,
               type: "number",
-              min: 500,
+              min: 350,
               max: 2200,
               placeholder: "2000",
-              help: "Минимальное количество слов в статье (от 500 до 2200)",
+              help: "Минимальное количество слов в статье (от 350 до 2200)",
             }),
           ),
           wp.element.createElement(
