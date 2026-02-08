@@ -40,10 +40,10 @@ class PostEditorController {
     }
 
     // Валидация обязательных полей
-    if (empty($data['role']) || empty($data['prompt']) || empty($data['sections'])) {
+    if (empty($data['role']) || empty($data['prompt']) || empty($data['sections']) || empty($data['angle'])) {
       return rest_ensure_response([
         'success' => false,
-        'message' => __('Заполните все обязательные поля: Роль, Промпт, Секции', 'content-factory-ui')
+        'message' => __('Заполните все обязательные поля: Роль, Промпт, Секции, Тип статьи', 'content-factory-ui')
       ]);
     }
 
@@ -65,7 +65,9 @@ class PostEditorController {
       'post_id' => $post_id,
       'role' => sanitize_text_field($data['role']),
       'prompt' => sanitize_textarea_field($data['prompt']),
-      'sections' => sanitize_textarea_field($data['sections'])
+      'sections' => sanitize_textarea_field($data['sections']),
+      'min_words' => intval($data['min_words'] ?? 2000),
+      'angle' => sanitize_text_field($data['angle'])
     ];
     
     error_log('[PostEditorController] Генерация статьи для поста ID: ' . $post_id);

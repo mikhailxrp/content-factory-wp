@@ -20,6 +20,8 @@
     const [sections, setSections] = useState(
       "Введение\nОсновная часть\nЗаключение",
     );
+    const [minWords, setMinWords] = useState("2000");
+    const [angle, setAngle] = useState("");
     const [error, setError] = useState(null);
     const [pollingInterval, setPollingInterval] = useState(null);
 
@@ -57,7 +59,13 @@
 
     const handleGenerate = async () => {
       // Валидация
-      if (!role.trim() || !prompt.trim() || !sections.trim()) {
+      if (
+        !role.trim() ||
+        !prompt.trim() ||
+        !sections.trim() ||
+        !minWords.trim() ||
+        !angle.trim()
+      ) {
         setError("Заполните все обязательные поля");
         return;
       }
@@ -74,6 +82,8 @@
             role: role.trim(),
             prompt: prompt.trim(),
             sections: sections.trim(),
+            min_words: parseInt(minWords) || 2000,
+            angle: angle.trim(),
           },
         });
 
@@ -255,6 +265,29 @@
               placeholder: "Введение\nОсновная часть\nЗаключение",
               rows: 6,
               help: "Укажите структуру статьи (каждая секция с новой строки)",
+            }),
+          ),
+          wp.element.createElement(
+            "div",
+            { style: { marginBottom: "20px" } },
+            wp.element.createElement(TextControl, {
+              label: "Минимальное количество слов *",
+              value: minWords,
+              onChange: setMinWords,
+              type: "number",
+              placeholder: "2000",
+              help: "Минимальное количество слов в статье",
+            }),
+          ),
+          wp.element.createElement(
+            "div",
+            { style: { marginBottom: "20px" } },
+            wp.element.createElement(TextControl, {
+              label: "Тип статьи (angle) *",
+              value: angle,
+              onChange: setAngle,
+              placeholder: "Например: инструкция, кейс, сравнение",
+              help: "Укажите тип/угол раскрытия темы",
             }),
           ),
           wp.element.createElement(
