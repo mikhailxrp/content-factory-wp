@@ -961,7 +961,9 @@
 
             // Показываем результат, если есть данные
             if (response.data) {
-              this.renderList("topics", response.data, $("#cf-topics-list"));
+              // Проверяем, если data содержит topics (новая структура от n8n)
+              const topics = response.data.topics || response.data;
+              this.renderList("topics", topics, $("#cf-topics-list"));
             }
           } else {
             this.showNotice(
