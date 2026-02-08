@@ -6,6 +6,13 @@
   "use strict";
 
   const cfUI = {
+    // Данные для ленивой загрузки тем
+    topicsData: {
+      all: [],
+      displayed: 0,
+      observer: null,
+    },
+
     init() {
       // Проверка наличия глобальных данных
       if (!window.cfUIData || !window.cfUIData.restUrl) {
@@ -356,6 +363,47 @@
         return;
       }
 
+      // Для тем используем ленивую загрузку
+      if (type === "topics") {
+        // Очищаем предыдущий observer
+        if (this.topicsData.observer) {
+          this.topicsData.observer.disconnect();
+        }
+
+        // Сохраняем все темы
+        this.topicsData.all = items;
+        this.topicsData.displayed = 0;
+
+        $container.empty();
+
+        // Создаем контейнер для тем
+        const $listContainer = $('<div class="cf-topics-items"></div>');
+        $container.append($listContainer);
+
+        // Показываем первые 20
+        this.loadMoreTopics($listContainer);
+
+        // Добавляем триггер для подгрузки
+        const $loadTrigger = $(
+          '<div class="cf-load-trigger" style="height: 1px;"></div>',
+        );
+        $container.append($loadTrigger);
+
+        // IntersectionObserver для автоподгрузки
+        this.topicsData.observer = new IntersectionObserver((entries) => {
+          if (
+            entries[0].isIntersecting &&
+            this.topicsData.displayed < this.topicsData.all.length
+          ) {
+            this.loadMoreTopics($listContainer);
+          }
+        });
+        this.topicsData.observer.observe($loadTrigger[0]);
+
+        return;
+      }
+
+      // Для остальных типов используем стандартный рендеринг
       const html = items
         .map((item) => this.renderListItem(type, item))
         .join("");
@@ -376,6 +424,30 @@
           cfUI.loadDetail(type.slice(0, -1), itemId);
         }
       });
+    },
+
+    loadMoreTopics($container) {
+      const perPage = 20;
+      const start = this.topicsData.displayed;
+      const end = Math.min(start + perPage, this.topicsData.all.length);
+      const chunk = this.topicsData.all.slice(start, end);
+
+      chunk.forEach((item) => {
+        const html = this.renderListItem("topics", item);
+        const $item = $(html);
+
+        // Bind click event для каждой темы
+        $item.on("click", function () {
+          const id = $(this).data("id");
+          cfUI.loadDetailInline("topic", id, $(this));
+        });
+
+        $container.append($item);
+      });
+
+      this.topicsData.displayed = end;
+
+      console.log(`Загружено тем: ${end} из ${this.topicsData.all.length}`);
     },
 
     renderListItem(type, item) {
@@ -403,20 +475,22 @@
         const title = item.topic_title || "Без названия";
         const angle = item.angle || "";
         const query = item.top3_query_texts || "";
-        const date = item.topic_created_at || "";
+        const date = item.topic_created_at || item.created_at || "";
         const score = item.topic_score || 0;
         const status = item.status || "";
+        const topicId = item.topic_candidate_id || item.id;
 
         // Добавляем класс для опубликованных тем
         const publishedClass =
           status === "published" ? " cf-ui-list-item-published" : "";
 
         return `
-          <div class="cf-ui-list-item${publishedClass}" data-id="${item.topic_candidate_id}">
+          <div class="cf-ui-list-item${publishedClass}" data-id="${topicId}">
             <h3>${this.escapeHtml(title)}</h3>
             ${angle ? `<p><strong>Угол:</strong> ${this.escapeHtml(angle)}</p>` : ""}
             ${query ? `<p><strong>Запрос:</strong> ${this.escapeHtml(this.truncate(query, 100))}</p>` : ""}
             <div class="cf-ui-meta">
+              <span>ID: ${topicId}</span> | 
               <span>Score: ${score}</span> | 
               <span>Status: <strong class="status-${status}">${status}</strong></span> | 
               <span>Meaning: ${item.meaning_id}</span> | 

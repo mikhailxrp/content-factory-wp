@@ -567,6 +567,18 @@
   font-size: 12px;
 }
 
+/* Topics lazy loading */
+.cf-topics-items {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cf-load-trigger {
+  height: 1px;
+  visibility: hidden;
+}
+
 /* Responsive */
 @media (max-width: 782px) {
   .cf-ui-wrap {
