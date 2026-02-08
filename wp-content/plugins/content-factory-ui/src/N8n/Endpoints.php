@@ -9,7 +9,7 @@ class Endpoints {
   private static $endpoints = [
     'generate_senses' => '/webhook/generate-senses',
     'generate_topics' => '/webhook/generate-topics',
-    'update_topics' => '/webhook-test/update-topics',
+    'update_topics' => '/webhook/update-topics',
     'list_topics' => '/webhook/topics/list',
     'get_topic' => '/webhook/topics/get',
     'generate_article' => '/webhook-test/generate-article',
