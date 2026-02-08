@@ -22,6 +22,7 @@
     );
     const [minWords, setMinWords] = useState("2000");
     const [angle, setAngle] = useState("");
+    const [keywords, setKeywords] = useState("");
     const [error, setError] = useState(null);
     const [pollingInterval, setPollingInterval] = useState(null);
 
@@ -74,6 +75,12 @@
       setError(null);
 
       try {
+        // Преобразуем keywords из строки в массив
+        const keywordsArray = keywords
+          .split(",")
+          .map((k) => k.trim())
+          .filter((k) => k);
+
         // Отправляем запрос на генерацию
         const response = await apiFetch({
           path: `/content-factory/v1/posts/${postId}/generate-article`,
@@ -84,6 +91,7 @@
             sections: sections.trim(),
             min_words: parseInt(minWords) || 2000,
             angle: angle.trim(),
+            keywords: keywordsArray,
           },
         });
 
@@ -288,6 +296,17 @@
               onChange: setAngle,
               placeholder: "Например: инструкция, кейс, сравнение",
               help: "Укажите тип/угол раскрытия темы",
+            }),
+          ),
+          wp.element.createElement(
+            "div",
+            { style: { marginBottom: "20px" } },
+            wp.element.createElement(TextControl, {
+              label: "Ключевые слова",
+              value: keywords,
+              onChange: setKeywords,
+              placeholder: "ипотека, молодая семья, кредит",
+              help: "Укажите ключевые слова через запятую (опционально)",
             }),
           ),
           wp.element.createElement(

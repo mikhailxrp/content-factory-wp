@@ -61,13 +61,20 @@ class PostEditorController {
       ]);
     }
 
+    // Обработка ключевых слов
+    $keywords = [];
+    if (!empty($data['keywords']) && is_array($data['keywords'])) {
+      $keywords = array_map('sanitize_text_field', $data['keywords']);
+    }
+    
     $payload = [
       'post_id' => $post_id,
       'role' => sanitize_text_field($data['role']),
       'prompt' => sanitize_textarea_field($data['prompt']),
       'sections' => sanitize_textarea_field($data['sections']),
       'min_words' => intval($data['min_words'] ?? 2000),
-      'angle' => sanitize_text_field($data['angle'])
+      'angle' => sanitize_text_field($data['angle']),
+      'keywords' => $keywords
     ];
     
     error_log('[PostEditorController] Генерация статьи для поста ID: ' . $post_id);
