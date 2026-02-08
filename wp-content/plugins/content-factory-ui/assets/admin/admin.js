@@ -457,17 +457,18 @@
         const problem = item.problem || "";
         const date = item.created_at || "";
         const regenState = item.regen_state;
-        
+
         // Определяем класс и статус в зависимости от regen_state
-        let stateClass = '';
-        let stateLabel = '';
-        
-        if (regenState === 'exhausted') {
-          stateClass = 'cf-ui-sense-exhausted';
-          stateLabel = '<span class="cf-ui-sense-status cf-ui-sense-status-exhausted">⚠️ Смысл исчерпан, требуется замена</span>';
-        } else if (regenState === 'ok' || regenState === null) {
-          stateClass = 'cf-ui-sense-active';
-          stateLabel = '';
+        let stateClass = "";
+        let stateLabel = "";
+
+        if (regenState === "exhausted") {
+          stateClass = "cf-ui-sense-exhausted";
+          stateLabel =
+            '<span class="cf-ui-sense-status cf-ui-sense-status-exhausted">⚠️ Смысл исчерпан, требуется замена</span>';
+        } else if (regenState === "ok" || regenState === null) {
+          stateClass = "cf-ui-sense-active";
+          stateLabel = "";
         }
 
         return `
@@ -1045,6 +1046,15 @@
           console.log("updateTopics: получен ответ", response);
 
           if (response.success) {
+            // Проверяем статус ответа от n8n
+            if (response.data && response.data.status === "empty") {
+              this.showNotice(
+                "Больше нет возможности генерировать темы со старыми смыслами. Необходимо создать новые смыслы.",
+                "warning",
+              );
+              return;
+            }
+
             this.showNotice(response.message || "Темы обновлены", "success");
 
             // Показываем результат, если есть данные
