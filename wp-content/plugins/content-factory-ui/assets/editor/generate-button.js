@@ -36,7 +36,7 @@
     const [prompts, setPrompts] = useState([]);
     const [isLoadingPrompts, setIsLoadingPrompts] = useState(true);
     const [error, setError] = useState(null);
-    const [pollingInterval, setPollingInterval] = useState(null);
+    const pollingIntervalRef = wp.element.useRef(null);
     const [notificationShown, setNotificationShown] = useState(false);
 
     // Получаем ID текущего поста
@@ -56,11 +56,11 @@
     // Очистка интервала при размонтировании
     wp.element.useEffect(() => {
       return () => {
-        if (pollingInterval) {
-          clearInterval(pollingInterval);
+        if (pollingIntervalRef.current) {
+          clearInterval(pollingIntervalRef.current);
         }
       };
-    }, [pollingInterval]);
+    }, []);
 
     const loadPrompts = async () => {
       setIsLoadingPrompts(true);
@@ -91,9 +91,9 @@
       setIsModalOpen(false);
       setError(null);
       setNotificationShown(false);
-      if (pollingInterval) {
-        clearInterval(pollingInterval);
-        setPollingInterval(null);
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null;
       }
     };
 
@@ -193,11 +193,9 @@
       }, 5000);
 
       // Затем проверяем каждые 10 секунд
-      const interval = setInterval(() => {
+      pollingIntervalRef.current = setInterval(() => {
         checkStatus();
       }, 10000);
-
-      setPollingInterval(interval);
     };
 
     const checkStatus = async () => {
@@ -226,9 +224,9 @@
 
           if (status === "completed") {
             // Генерация завершена
-            if (pollingInterval) {
-              clearInterval(pollingInterval);
-              setPollingInterval(null);
+            if (pollingIntervalRef.current) {
+              clearInterval(pollingIntervalRef.current);
+              pollingIntervalRef.current = null;
             }
 
             // Обновляем контент в редакторе
@@ -252,9 +250,9 @@
             closeModal();
           } else if (status === "error") {
             // Ошибка генерации
-            if (pollingInterval) {
-              clearInterval(pollingInterval);
-              setPollingInterval(null);
+            if (pollingIntervalRef.current) {
+              clearInterval(pollingIntervalRef.current);
+              pollingIntervalRef.current = null;
             }
 
             const errorMsg =
