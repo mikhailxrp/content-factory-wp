@@ -40,7 +40,7 @@ class PostEditorController {
     }
 
     // Валидация обязательных полей
-    $required_fields = ['request', 'audience', 'keywords', 'volume_from', 'volume_to', 'requirements', 'tone', 'context', 'additional_elements', 'avoid'];
+    $required_fields = ['request', 'audience', 'keywords', 'volume_from', 'volume_to', 'requirements', 'tone', 'angle', 'context', 'additional_elements', 'avoid'];
     foreach ($required_fields as $field) {
       if (empty($data[$field]) && $data[$field] !== 0) {
         return rest_ensure_response([
@@ -104,6 +104,7 @@ class PostEditorController {
       'volume_to' => intval($data['volume_to']),
       'requirements' => sanitize_textarea_field($data['requirements']),
       'tone' => sanitize_text_field($data['tone']),
+      'angle' => sanitize_text_field($data['angle']),
       'context' => sanitize_textarea_field($data['context']),
       'format' => 'WordPress',
       'additional_elements' => sanitize_textarea_field($data['additional_elements']),

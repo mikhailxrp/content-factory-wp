@@ -5,8 +5,15 @@
 (function (wp) {
   const { registerPlugin } = wp.plugins;
   const { PluginDocumentSettingPanel } = wp.editPost;
-  const { Button, Modal, TextControl, TextareaControl, Notice, Spinner } =
-    wp.components;
+  const {
+    Button,
+    Modal,
+    TextControl,
+    TextareaControl,
+    SelectControl,
+    Notice,
+    Spinner,
+  } = wp.components;
   const { useState } = wp.element;
   const { useSelect, useDispatch } = wp.data;
   const { __ } = wp.i18n;
@@ -22,9 +29,12 @@
     const [volumeTo, setVolumeTo] = useState("3000");
     const [requirements, setRequirements] = useState("");
     const [tone, setTone] = useState("");
+    const [angle, setAngle] = useState("");
     const [context, setContext] = useState("");
     const [additionalElements, setAdditionalElements] = useState("");
     const [avoid, setAvoid] = useState("");
+    const [prompts, setPrompts] = useState([]);
+    const [isLoadingPrompts, setIsLoadingPrompts] = useState(true);
     const [error, setError] = useState(null);
     const [pollingInterval, setPollingInterval] = useState(null);
     const [notificationShown, setNotificationShown] = useState(false);
@@ -38,6 +48,11 @@
     const { editPost } = useDispatch("core/editor");
     const { createNotice } = useDispatch("core/notices");
 
+    // Загрузка промптов при монтировании
+    wp.element.useEffect(() => {
+      loadPrompts();
+    }, []);
+
     // Очистка интервала при размонтировании
     wp.element.useEffect(() => {
       return () => {
@@ -46,6 +61,26 @@
         }
       };
     }, [pollingInterval]);
+
+    const loadPrompts = async () => {
+      setIsLoadingPrompts(true);
+      try {
+        const response = await apiFetch({
+          path: "/content-factory/v1/prompts",
+          method: "GET",
+        });
+
+        if (response.success && response.data) {
+          // Фильтруем только активные промпты
+          const activePrompts = response.data.filter((p) => p.is_active === 1);
+          setPrompts(activePrompts);
+        }
+      } catch (err) {
+        console.error("Ошибка загрузки промптов:", err);
+      } finally {
+        setIsLoadingPrompts(false);
+      }
+    };
 
     const openModal = () => {
       setIsModalOpen(true);
@@ -72,6 +107,7 @@
         !volumeTo.trim() ||
         !requirements.trim() ||
         !tone.trim() ||
+        !angle.trim() ||
         !context.trim() ||
         !additionalElements.trim() ||
         !avoid.trim()
@@ -122,6 +158,7 @@
             volume_to: volumeToValue,
             requirements: requirements.trim(),
             tone: tone.trim(),
+            angle: angle.trim(),
             context: context.trim(),
             format: "WordPress",
             additional_elements: additionalElements.trim(),
@@ -403,6 +440,26 @@
               onChange: setTone,
               placeholder: "Например: Дружелюбный, простой язык",
               help: "Стиль и тон статьи",
+            }),
+          ),
+          wp.element.createElement(
+            "div",
+            { style: { marginBottom: "20px" } },
+            wp.element.createElement(SelectControl, {
+              label: "Угол раскрытия статьи *",
+              value: angle,
+              onChange: setAngle,
+              disabled: isLoadingPrompts,
+              help: isLoadingPrompts
+                ? "Загрузка списка углов..."
+                : "Выберите угол раскрытия статьи",
+              options: [
+                { value: "", label: "-- Выбрать --" },
+                ...prompts.map((p) => ({
+                  value: p.template_name,
+                  label: p.angle,
+                })),
+              ],
             }),
           ),
           wp.element.createElement(
