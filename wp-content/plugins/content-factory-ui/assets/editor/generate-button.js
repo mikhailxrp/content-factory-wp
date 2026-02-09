@@ -15,14 +15,16 @@
   const GenerateArticleButton = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isGenerating, setIsGenerating] = useState(false);
-    const [role, setRole] = useState("SEO эксперт");
-    const [prompt, setPrompt] = useState("");
-    const [sections, setSections] = useState(
-      "Введение\nОсновная часть\nЗаключение",
-    );
-    const [minWords, setMinWords] = useState("2000");
-    const [angle, setAngle] = useState("");
+    const [request, setRequest] = useState("");
+    const [audience, setAudience] = useState("");
     const [keywords, setKeywords] = useState("");
+    const [volumeFrom, setVolumeFrom] = useState("500");
+    const [volumeTo, setVolumeTo] = useState("3000");
+    const [requirements, setRequirements] = useState("");
+    const [tone, setTone] = useState("");
+    const [context, setContext] = useState("");
+    const [additionalElements, setAdditionalElements] = useState("");
+    const [avoid, setAvoid] = useState("");
     const [error, setError] = useState(null);
     const [pollingInterval, setPollingInterval] = useState(null);
     const [notificationShown, setNotificationShown] = useState(false);
@@ -63,20 +65,37 @@
     const handleGenerate = async () => {
       // Валидация
       if (
-        !role.trim() ||
-        !prompt.trim() ||
-        !sections.trim() ||
-        !minWords.trim() ||
-        !angle.trim()
+        !request.trim() ||
+        !audience.trim() ||
+        !keywords.trim() ||
+        !volumeFrom.trim() ||
+        !volumeTo.trim() ||
+        !requirements.trim() ||
+        !tone.trim() ||
+        !context.trim() ||
+        !additionalElements.trim() ||
+        !avoid.trim()
       ) {
         setError("Заполните все обязательные поля");
         return;
       }
 
-      // Валидация диапазона min_words
-      const minWordsValue = parseInt(minWords);
-      if (minWordsValue < 350 || minWordsValue > 2200) {
-        setError("Минимальное количество слов должно быть от 350 до 2200");
+      // Валидация диапазона объёма
+      const volumeFromValue = parseInt(volumeFrom);
+      const volumeToValue = parseInt(volumeTo);
+
+      if (volumeFromValue < 500 || volumeFromValue > 3000) {
+        setError("Объём 'от' должен быть от 500 до 3000");
+        return;
+      }
+
+      if (volumeToValue < 500 || volumeToValue > 3000) {
+        setError("Объём 'до' должен быть от 500 до 3000");
+        return;
+      }
+
+      if (volumeFromValue > volumeToValue) {
+        setError("Объём 'от' не может быть больше чем 'до'");
         return;
       }
 
@@ -96,12 +115,17 @@
           path: `/content-factory/v1/posts/${postId}/generate-article`,
           method: "POST",
           data: {
-            role: role.trim(),
-            prompt: prompt.trim(),
-            sections: sections.trim(),
-            min_words: parseInt(minWords) || 2000,
-            angle: angle.trim(),
+            request: request.trim(),
+            audience: audience.trim(),
             keywords: keywordsArray,
+            volume_from: volumeFromValue,
+            volume_to: volumeToValue,
+            requirements: requirements.trim(),
+            tone: tone.trim(),
+            context: context.trim(),
+            format: "WordPress",
+            additional_elements: additionalElements.trim(),
+            avoid: avoid.trim(),
           },
         });
 
@@ -292,73 +316,131 @@
           wp.element.createElement(
             "div",
             { style: { marginBottom: "20px" } },
-            wp.element.createElement(TextControl, {
-              label: "Роль *",
-              value: role,
-              onChange: setRole,
-              placeholder: "Например: SEO эксперт по недвижимости",
-              help: "Укажите роль, от лица которой будет написана статья",
+            wp.element.createElement(TextareaControl, {
+              label: "Запрос *",
+              value: request,
+              onChange: setRequest,
+              placeholder: "Например: Как выбрать CRM для малого бизнеса",
+              rows: 3,
+              help: "Основная тема или вопрос статьи",
             }),
           ),
           wp.element.createElement(
             "div",
             { style: { marginBottom: "20px" } },
             wp.element.createElement(TextareaControl, {
-              label: "Промпт *",
-              value: prompt,
-              onChange: setPrompt,
+              label: "Аудитория *",
+              value: audience,
+              onChange: setAudience,
               placeholder:
-                "Например: Напиши подробную статью про ипотеку для молодых семей",
-              rows: 4,
-              help: "Опишите, что должно быть в статье",
-            }),
-          ),
-          wp.element.createElement(
-            "div",
-            { style: { marginBottom: "20px" } },
-            wp.element.createElement(TextareaControl, {
-              label: "Секции статьи *",
-              value: sections,
-              onChange: setSections,
-              placeholder: "Введение\nОсновная часть\nЗаключение",
-              rows: 6,
-              help: "Укажите структуру статьи (каждая секция с новой строки)",
+                "Например: Владельцы малого бизнеса без технических знаний",
+              rows: 3,
+              help: "Целевая аудитория статьи",
             }),
           ),
           wp.element.createElement(
             "div",
             { style: { marginBottom: "20px" } },
             wp.element.createElement(TextControl, {
-              label: "Минимальное количество слов *",
-              value: minWords,
-              onChange: setMinWords,
-              type: "number",
-              min: 350,
-              max: 2200,
-              placeholder: "2000",
-              help: "Минимальное количество слов в статье (от 350 до 2200)",
-            }),
-          ),
-          wp.element.createElement(
-            "div",
-            { style: { marginBottom: "20px" } },
-            wp.element.createElement(TextControl, {
-              label: "Тип статьи (angle) *",
-              value: angle,
-              onChange: setAngle,
-              placeholder: "Например: инструкция, кейс, сравнение",
-              help: "Укажите тип/угол раскрытия темы",
-            }),
-          ),
-          wp.element.createElement(
-            "div",
-            { style: { marginBottom: "20px" } },
-            wp.element.createElement(TextControl, {
-              label: "Ключевые слова",
+              label: "Ключевые слова *",
               value: keywords,
               onChange: setKeywords,
-              placeholder: "ипотека, молодая семья, кредит",
-              help: "Укажите ключевые слова через запятую (опционально)",
+              placeholder: "выбор CRM, CRM для малого бизнеса, лучшая CRM",
+              help: "Укажите ключевые слова через запятую",
+            }),
+          ),
+          wp.element.createElement(
+            "div",
+            { style: { marginBottom: "20px", display: "flex", gap: "12px" } },
+            wp.element.createElement(
+              "div",
+              { style: { flex: 1 } },
+              wp.element.createElement(TextControl, {
+                label: "Объём от (слов) *",
+                value: volumeFrom,
+                onChange: setVolumeFrom,
+                type: "number",
+                min: 500,
+                max: 3000,
+                placeholder: "500",
+                help: "Минимум 500 слов",
+              }),
+            ),
+            wp.element.createElement(
+              "div",
+              { style: { flex: 1 } },
+              wp.element.createElement(TextControl, {
+                label: "Объём до (слов) *",
+                value: volumeTo,
+                onChange: setVolumeTo,
+                type: "number",
+                min: 500,
+                max: 3000,
+                placeholder: "3000",
+                help: "Максимум 3000 слов",
+              }),
+            ),
+          ),
+          wp.element.createElement(
+            "div",
+            { style: { marginBottom: "20px" } },
+            wp.element.createElement(TextareaControl, {
+              label: "Требования *",
+              value: requirements,
+              onChange: setRequirements,
+              placeholder:
+                "Например: Сравнительная таблица 5-7 систем, чек-лист выбора",
+              rows: 4,
+              help: "Особые требования к контенту",
+            }),
+          ),
+          wp.element.createElement(
+            "div",
+            { style: { marginBottom: "20px" } },
+            wp.element.createElement(TextControl, {
+              label: "Тон *",
+              value: tone,
+              onChange: setTone,
+              placeholder: "Например: Дружелюбный, простой язык",
+              help: "Стиль и тон статьи",
+            }),
+          ),
+          wp.element.createElement(
+            "div",
+            { style: { marginBottom: "20px" } },
+            wp.element.createElement(TextareaControl, {
+              label: "Контекст *",
+              value: context,
+              onChange: setContext,
+              placeholder:
+                "Например: Бюджет до 10 000 руб/мес, команда 5-10 человек",
+              rows: 3,
+              help: "Дополнительный контекст для статьи",
+            }),
+          ),
+          wp.element.createElement(
+            "div",
+            { style: { marginBottom: "20px" } },
+            wp.element.createElement(TextareaControl, {
+              label: "Доп. элементы *",
+              value: additionalElements,
+              onChange: setAdditionalElements,
+              placeholder: "Например: FAQ, калькулятор стоимости (описание)",
+              rows: 3,
+              help: "Дополнительные элементы в статье",
+            }),
+          ),
+          wp.element.createElement(
+            "div",
+            { style: { marginBottom: "20px" } },
+            wp.element.createElement(TextareaControl, {
+              label: "Избегать *",
+              value: avoid,
+              onChange: setAvoid,
+              placeholder:
+                "Например: Сложных технических терминов без объяснений",
+              rows: 3,
+              help: "Чего следует избегать в статье",
             }),
           ),
           wp.element.createElement(

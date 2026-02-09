@@ -40,10 +40,38 @@ class PostEditorController {
     }
 
     // Валидация обязательных полей
-    if (empty($data['role']) || empty($data['prompt']) || empty($data['sections']) || empty($data['angle'])) {
+    $required_fields = ['request', 'audience', 'keywords', 'volume_from', 'volume_to', 'requirements', 'tone', 'context', 'additional_elements', 'avoid'];
+    foreach ($required_fields as $field) {
+      if (empty($data[$field]) && $data[$field] !== 0) {
+        return rest_ensure_response([
+          'success' => false,
+          'message' => sprintf(__('Заполните обязательное поле: %s', 'content-factory-ui'), $field)
+        ]);
+      }
+    }
+    
+    // Валидация диапазона объёма
+    $volume_from = intval($data['volume_from']);
+    $volume_to = intval($data['volume_to']);
+    
+    if ($volume_from < 500 || $volume_from > 3000) {
       return rest_ensure_response([
         'success' => false,
-        'message' => __('Заполните все обязательные поля: Роль, Промпт, Секции, Тип статьи', 'content-factory-ui')
+        'message' => __('Объём "от" должен быть от 500 до 3000', 'content-factory-ui')
+      ]);
+    }
+    
+    if ($volume_to < 500 || $volume_to > 3000) {
+      return rest_ensure_response([
+        'success' => false,
+        'message' => __('Объём "до" должен быть от 500 до 3000', 'content-factory-ui')
+      ]);
+    }
+    
+    if ($volume_from > $volume_to) {
+      return rest_ensure_response([
+        'success' => false,
+        'message' => __('Объём "от" не может быть больше чем "до"', 'content-factory-ui')
       ]);
     }
 
@@ -69,12 +97,17 @@ class PostEditorController {
     
     $payload = [
       'post_id' => $post_id,
-      'role' => sanitize_text_field($data['role']),
-      'prompt' => sanitize_textarea_field($data['prompt']),
-      'sections' => sanitize_textarea_field($data['sections']),
-      'min_words' => intval($data['min_words'] ?? 2000),
-      'angle' => sanitize_text_field($data['angle']),
-      'keywords' => $keywords
+      'request' => sanitize_textarea_field($data['request']),
+      'audience' => sanitize_textarea_field($data['audience']),
+      'keywords' => $keywords,
+      'volume_from' => intval($data['volume_from']),
+      'volume_to' => intval($data['volume_to']),
+      'requirements' => sanitize_textarea_field($data['requirements']),
+      'tone' => sanitize_text_field($data['tone']),
+      'context' => sanitize_textarea_field($data['context']),
+      'format' => 'WordPress',
+      'additional_elements' => sanitize_textarea_field($data['additional_elements']),
+      'avoid' => sanitize_textarea_field($data['avoid'])
     ];
     
     error_log('[PostEditorController] Генерация статьи для поста ID: ' . $post_id);
