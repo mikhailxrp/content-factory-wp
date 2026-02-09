@@ -12,7 +12,7 @@ class Endpoints {
     'update_topics' => '/webhook/update-topics',
     'list_topics' => '/webhook/topics/list',
     'get_topic' => '/webhook/topics/get',
-    'generate_article' => '/webhook-test/generate-article',
+    'generate_article' => '/webhook/generate-article',
     'check_article_status' => '/webhook/check-article-status',
     'update_article_status' => '/webhook/update-article-status',
     'list_articles' => '/webhook/articles/list',
@@ -26,7 +26,7 @@ class Endpoints {
     'create_prompt' => '/webhook/prompts/create',
     'update_prompt' => '/webhook/prompts/update',
     'delete_prompt' => '/webhook/prompts/delete',
-    'generate_article_from_editor' => '/webhook-test/generate-article-from-editor',
+    'generate_article_from_editor' => '/webhook/generate-article-from-editor',
     'check_editor_article_status' => '/webhook/check-editor-article-status'
   ];
 
