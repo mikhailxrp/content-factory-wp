@@ -1370,8 +1370,8 @@
         return;
       }
 
-      // Определяем дефолтные промпты (ID <= 9)
-      const defaultPromptIds = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+      // Определяем дефолтные промпты (ID 1-21)
+      const defaultPromptIds = Array.from({ length: 21 }, (_, i) => i + 1);
 
       const html = prompts
         .map((prompt) => {

@@ -167,6 +167,15 @@ class PromptsController {
       ]);
     }
     
+    // Защита дефолтных промптов (ID 1-21)
+    if ((int)$id <= 21) {
+      error_log('Попытка удалить системный промпт: ' . $id);
+      return rest_ensure_response([
+        'success' => false,
+        'message' => 'Нельзя удалить системный промпт. Системные промпты имеют ID от 1 до 21.'
+      ]);
+    }
+    
     $client = new Client();
     $endpoint = Endpoints::get('delete_prompt');
     
