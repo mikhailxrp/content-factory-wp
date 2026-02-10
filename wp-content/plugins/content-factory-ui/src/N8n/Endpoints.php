@@ -10,7 +10,7 @@ class Endpoints {
     'generate_senses' => '/webhook/generate-senses',
     'generate_topics' => '/webhook/generate-topics',
     'update_topics' => '/webhook/update-topics',
-    'list_topics' => '/webhook-test/topics/list',
+    'list_topics' => '/webhook/topics/list',
     'get_topic' => '/webhook/topics/get',
     'generate_article' => '/webhook/generate-article',
     'check_article_status' => '/webhook/check-article-status',
