@@ -53,6 +53,9 @@
       $("#cf-topics-run-id-select").on("change", () =>
         this.loadSensesForTopics(),
       );
+      $("#cf-topics-sense-select").on("change", () =>
+        this.updateGenerateTopicsButtonState(),
+      );
       $("#cf-list-topics").on("click", this.listTopics.bind(this));
       $("#cf-generate-topics").on("click", this.generateTopics.bind(this));
       $("#cf-update-topics").on("click", this.updateTopics.bind(this));
@@ -994,6 +997,9 @@
             if (firstSense && firstSense.meaning_id) {
               $senseSelect.val(firstSense.meaning_id);
             }
+
+            // Обновляем состояние кнопки генерации для дефолтного смысла
+            this.updateGenerateTopicsButtonState();
           } else {
             $senseSelect.html(
               '<option value="">Смыслов для этого запуска нет</option>',
@@ -1004,6 +1010,40 @@
           $senseSelect.html(
             '<option value="">Ошибка загрузки смыслов</option>',
           );
+        });
+    },
+
+    updateGenerateTopicsButtonState() {
+      const runId = $("#cf-topics-run-id-select").val();
+      const meaningId = $("#cf-topics-sense-select").val();
+      const $genBtn = $("#cf-generate-topics");
+
+      // Если нет выбранного запуска или смысла, не блокируем генерацию
+      if (!runId || !meaningId) {
+        $genBtn.prop("disabled", false).text("Сгенерировать темы");
+        return;
+      }
+
+      const url = `topics/list?run_id=${encodeURIComponent(
+        runId,
+      )}&meaning_id=${encodeURIComponent(meaningId)}`;
+
+      this.apiRequest(url)
+        .done((response) => {
+          if (response.success && Array.isArray(response.data)) {
+            if (response.data.length > 0) {
+              $genBtn.prop("disabled", true).text("Темы уже есть");
+            } else {
+              $genBtn.prop("disabled", false).text("Сгенерировать темы");
+            }
+          } else {
+            // В нештатной ситуации не блокируем генерацию
+            $genBtn.prop("disabled", false).text("Сгенерировать темы");
+          }
+        })
+        .fail(() => {
+          // При ошибке запроса не блокируем генерацию
+          $genBtn.prop("disabled", false).text("Сгенерировать темы");
         });
     },
 
