@@ -116,7 +116,13 @@ class Router {
           'type' => 'string',
           'description' => 'ID запуска генерации',
           'sanitize_callback' => 'sanitize_text_field'
-        ]
+        ],
+        'meaning_id' => [
+          'required' => false,
+          'type' => 'string',
+          'description' => 'ID смысла (meaning_id) для фильтрации тем',
+          'sanitize_callback' => 'sanitize_text_field'
+        ],
       ]
     ]);
 

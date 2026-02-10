@@ -50,6 +50,9 @@
       $("#cf-refresh-run-ids-topics").on("click", () =>
         this.loadRunIdsForTopics(),
       );
+      $("#cf-topics-run-id-select").on("change", () =>
+        this.loadSensesForTopics(),
+      );
       $("#cf-list-topics").on("click", this.listTopics.bind(this));
       $("#cf-generate-topics").on("click", this.generateTopics.bind(this));
       $("#cf-update-topics").on("click", this.updateTopics.bind(this));
@@ -942,6 +945,9 @@
             const lastRunId = response.data[0];
             console.log("loadRunIdsForTopics: выбираем run_id:", lastRunId);
             $select.val(lastRunId);
+
+            // Загружаем список смыслов для выбранного run_id
+            this.loadSensesForTopics();
           } else {
             console.log("loadRunIdsForTopics: нет данных о запусках");
             $select.html('<option value="">Нет запусков генерации</option>');
@@ -958,8 +964,53 @@
         });
     },
 
+    loadSensesForTopics() {
+      const runId = $("#cf-topics-run-id-select").val();
+      const $senseSelect = $("#cf-topics-sense-select");
+
+      if (!runId) {
+        $senseSelect.html('<option value="">Сначала выберите запуск</option>');
+        return;
+      }
+
+      $senseSelect.html('<option value="">Загрузка смыслов...</option>');
+
+      this.apiRequest(`senses/list?run_id=${encodeURIComponent(runId)}`)
+        .done((response) => {
+          if (response.success && response.data && response.data.length > 0) {
+            const options = [
+              '<option value="">Все смыслы</option>',
+              ...response.data.map((sense) => {
+                const title = `${sense.meaning_id} — ${sense.service} — ${sense.audience}`;
+                return `<option value="${this.escapeHtml(
+                  sense.meaning_id,
+                )}">${this.escapeHtml(title)}</option>`;
+              }),
+            ].join("");
+
+            $senseSelect.html(options);
+
+            // По умолчанию выбираем первый смысл в массиве
+            const firstSense = response.data[0];
+            if (firstSense && firstSense.meaning_id) {
+              $senseSelect.val(firstSense.meaning_id);
+            }
+          } else {
+            $senseSelect.html(
+              '<option value="">Смыслов для этого запуска нет</option>',
+            );
+          }
+        })
+        .fail(() => {
+          $senseSelect.html(
+            '<option value="">Ошибка загрузки смыслов</option>',
+          );
+        });
+    },
+
     listTopics() {
       const runId = $("#cf-topics-run-id-select").val();
+      const meaningId = $("#cf-topics-sense-select").val();
 
       if (!runId) {
         this.showNotice("Выберите run_id", "error");
@@ -970,7 +1021,12 @@
       const originalText = $btn.text();
       $btn.prop("disabled", true).text(window.cfUIData.i18n.loading);
 
-      this.apiRequest(`topics/list?run_id=${encodeURIComponent(runId)}`)
+      let url = `topics/list?run_id=${encodeURIComponent(runId)}`;
+      if (meaningId) {
+        url += `&meaning_id=${encodeURIComponent(meaningId)}`;
+      }
+
+      this.apiRequest(url)
         .done((response) => {
           console.log("listTopics: получен ответ", response);
           console.log("listTopics: список тем (response.data):", response.data);

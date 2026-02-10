@@ -15,6 +15,7 @@ class TopicsController {
    */
   public static function list($request) {
     $run_id = $request->get_param('run_id');
+    $meaning_id = $request->get_param('meaning_id');
 
     if (empty($run_id)) {
       return rest_ensure_response([
@@ -25,8 +26,16 @@ class TopicsController {
 
     $client = new Client();
     $endpoint = Endpoints::get('list_topics');
+
+    $params = [
+      'run_id' => $run_id
+    ];
+
+    if (!empty($meaning_id)) {
+      $params['meaning_id'] = $meaning_id;
+    }
     
-    $topics = $client->get($endpoint . '?run_id=' . urlencode($run_id));
+    $topics = $client->get($endpoint, $params);
 
     if (is_wp_error($topics)) {
       return rest_ensure_response([

@@ -16,6 +16,15 @@
         <?php _e('Обновить список', 'content-factory-ui'); ?>
       </button>
     </div>
+
+    <div class="cf-ui-toolbar-row" style="margin-top: 10px;">
+      <label for="cf-topics-sense-select">
+        <?php _e('Выберите смысл:', 'content-factory-ui'); ?>
+      </label>
+      <select id="cf-topics-sense-select" class="cf-ui-select">
+        <option value=""><?php _e('Сначала выберите запуск', 'content-factory-ui'); ?></option>
+      </select>
+    </div>
     
     <div class="cf-ui-toolbar-row" style="margin-top: 10px;">
       <button type="button" id="cf-list-topics" class="button button-primary">
