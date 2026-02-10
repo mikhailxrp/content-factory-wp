@@ -535,11 +535,19 @@
       const $detail = $(`#cf-${type}-detail`);
       $detail.html("<p>" + window.cfUIData.i18n.loading + "</p>").show();
 
-      // Для тем используем query-параметр
-      const endpoint =
-        type === "topic"
-          ? `${type}s/get?id=${encodeURIComponent(id)}`
+      // Для тем используем query-параметр, для смыслов передаём текущий run_id
+      let endpoint;
+
+      if (type === "topic") {
+        endpoint = `${type}s/get?id=${encodeURIComponent(id)}`;
+      } else if (type === "sense") {
+        const runId = $("#cf-run-id-select").val();
+        endpoint = runId
+          ? `${type}s/${id}?run_id=${encodeURIComponent(runId)}`
           : `${type}s/${id}`;
+      } else {
+        endpoint = `${type}s/${id}`;
+      }
 
       this.apiRequest(endpoint).done((response) => {
         if (response.success && response.data) {

@@ -88,7 +88,15 @@ class Router {
     register_rest_route(self::NAMESPACE, '/senses/(?P<id>[a-zA-Z0-9_-]+)', [
       'methods' => 'GET',
       'callback' => [SensesController::class, 'get'],
-      'permission_callback' => [SensesController::class, 'check_permission']
+      'permission_callback' => [SensesController::class, 'check_permission'],
+      'args' => [
+        'run_id' => [
+          'required' => false,
+          'type' => 'string',
+          'description' => 'ID запуска генерации',
+          'sanitize_callback' => 'sanitize_text_field'
+        ]
+      ]
     ]);
 
     register_rest_route(self::NAMESPACE, '/senses/(?P<id>[\d]+)/generate-topics', [

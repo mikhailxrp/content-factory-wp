@@ -124,12 +124,20 @@ class SensesController {
    */
   public static function get($request) {
     $meaning_id = $request->get_param('id');
+    $run_id = $request->get_param('run_id');
     error_log('=== Запрос детального смысла ===');
     error_log('ID (meaning_id): ' . $meaning_id);
+    if (!empty($run_id)) {
+      error_log('Run ID: ' . $run_id);
+    }
     
     $client = new Client();
     $endpoint = Endpoints::get('get_sense');
     $full_url = $endpoint . '?meaning_id=' . urlencode($meaning_id);
+    
+    if (!empty($run_id)) {
+      $full_url .= '&run_id=' . urlencode($run_id);
+    }
     
     error_log('Endpoint: ' . $endpoint);
     error_log('Полный URL с параметром: ' . $full_url);
