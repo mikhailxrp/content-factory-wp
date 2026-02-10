@@ -732,7 +732,7 @@
 
         let html = `
           <div class="cf-ui-detail-inline-header">
-            <h3 class="cf-topic-title" data-field="topic_title">${this.escapeHtml(
+            <h3 class="cf-topic-title cf-topic-editable" data-field="topic_title" contenteditable="false">${this.escapeHtml(
               title,
             )}</h3>
             <button type="button" class="cf-ui-detail-close">
@@ -765,7 +765,10 @@
               </p>
               ${queryMeta ? `<p class="cf-ui-detail-small">Метаданные: ${this.escapeHtml(queryMeta)}</p>` : ""}
             </div>
-            ${keywords ? `<div class="cf-ui-detail-section"><h4>Ключевые слова</h4><p>${this.escapeHtml(keywords)}</p></div>` : ""}
+            <div class="cf-ui-detail-section">
+              <h4>Ключевые слова</h4>
+              <p class="cf-topic-field cf-topic-editable" data-field="keywords" contenteditable="false">${this.escapeHtml(keywords)}</p>
+            </div>
             <p class="cf-ui-detail-date"><small>Создано: ${date}</small></p>
             <div class="cf-ui-detail-actions">
               <button type="button" class="button button-primary cf-generate-article-btn" data-topic-id="${item.topic_candidate_id}">
@@ -850,7 +853,9 @@
           const updated = {};
           $fields.each(function () {
             const field = $(this).data("field");
-            updated[field] = $(this).text().trim();
+            const raw = $(this).text().trim();
+            updated[field] =
+              field === "keywords" ? raw.split(/\s*,\s*/).filter(Boolean) : raw;
           });
 
           updated.topic_candidate_id = currentTopicId;
