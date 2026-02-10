@@ -978,15 +978,14 @@
       this.apiRequest(`senses/list?run_id=${encodeURIComponent(runId)}`)
         .done((response) => {
           if (response.success && response.data && response.data.length > 0) {
-            const options = [
-              '<option value="">Все смыслы</option>',
-              ...response.data.map((sense) => {
+            const options = response.data
+              .map((sense) => {
                 const title = `${sense.meaning_id} — ${sense.service} — ${sense.audience}`;
                 return `<option value="${this.escapeHtml(
                   sense.meaning_id,
                 )}">${this.escapeHtml(title)}</option>`;
-              }),
-            ].join("");
+              })
+              .join("");
 
             $senseSelect.html(options);
 
@@ -1058,6 +1057,7 @@
 
     generateTopics() {
       const runId = $("#cf-topics-run-id-select").val();
+      const meaningId = $("#cf-topics-sense-select").val();
 
       if (!runId) {
         this.showNotice("Выберите run_id", "error");
@@ -1074,10 +1074,12 @@
       const originalText = $btn.text();
       $btn.prop("disabled", true).text("Генерация...");
 
-      this.apiRequest(
-        `topics/generate?run_id=${encodeURIComponent(runId)}`,
-        "POST",
-      )
+      let url = `topics/generate?run_id=${encodeURIComponent(runId)}`;
+      if (meaningId) {
+        url += `&meaning_id=${encodeURIComponent(meaningId)}`;
+      }
+
+      this.apiRequest(url, "POST")
         .done((response) => {
           console.log("generateTopics: получен ответ", response);
 

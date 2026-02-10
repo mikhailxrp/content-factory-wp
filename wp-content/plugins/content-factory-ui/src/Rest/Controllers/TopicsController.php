@@ -58,6 +58,7 @@ class TopicsController {
    */
   public static function generate($request) {
     $run_id = $request->get_param('run_id');
+    $meaning_id = $request->get_param('meaning_id');
 
     if (empty($run_id)) {
       return rest_ensure_response([
@@ -70,8 +71,16 @@ class TopicsController {
     $client->set_timeout(120);
     
     $endpoint = Endpoints::get('generate_topics');
-    
-    $response = $client->post($endpoint . '?run_id=' . urlencode($run_id));
+
+    $query = [
+      'run_id' => $run_id
+    ];
+
+    if (!empty($meaning_id)) {
+      $query['meaning_id'] = $meaning_id;
+    }
+
+    $response = $client->post($endpoint . '?' . http_build_query($query));
 
     if (is_wp_error($response)) {
       return rest_ensure_response([
