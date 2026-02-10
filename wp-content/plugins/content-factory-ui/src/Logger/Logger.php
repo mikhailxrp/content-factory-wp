@@ -46,11 +46,28 @@ class Logger {
     $body = wp_remote_retrieve_body($response);
     $decoded = json_decode($body, true);
 
-    if (!$decoded || !isset($decoded['data'])) {
+    error_log('[Logger] Raw response from n8n: ' . substr($body, 0, 1000));
+    error_log('[Logger] Decoded data: ' . print_r($decoded, true));
+
+    if (!$decoded) {
+      error_log('[Logger] Не удалось декодировать JSON');
       return [];
     }
 
-    return $decoded['data'];
+    // n8n возвращает: [{"items": [...]}]
+    if (isset($decoded[0]['items'])) {
+      error_log('[Logger] Найден формат [{"items": [...]}], количество: ' . count($decoded[0]['items']));
+      return $decoded[0]['items'];
+    }
+
+    // Альтернативный формат: {"data": [...]}
+    if (isset($decoded['data'])) {
+      error_log('[Logger] Найден формат {"data": [...]}, количество: ' . count($decoded['data']));
+      return $decoded['data'];
+    }
+
+    error_log('[Logger] Неизвестный формат данных от n8n');
+    return [];
   }
 
   /**
