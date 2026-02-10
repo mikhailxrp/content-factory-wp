@@ -50,12 +50,14 @@
       $("#cf-refresh-run-ids-topics").on("click", () =>
         this.loadRunIdsForTopics(),
       );
-      $("#cf-topics-run-id-select").on("change", () =>
-        this.loadSensesForTopics(),
-      );
-      $("#cf-topics-sense-select").on("change", () =>
-        this.updateGenerateTopicsButtonState(),
-      );
+      $("#cf-topics-run-id-select").on("change", () => {
+        $("#cf-topics-list").empty();
+        this.loadSensesForTopics();
+      });
+      $("#cf-topics-sense-select").on("change", () => {
+        $("#cf-topics-list").empty();
+        this.updateGenerateTopicsButtonState();
+      });
       $("#cf-list-topics").on("click", this.listTopics.bind(this));
       $("#cf-generate-topics").on("click", this.generateTopics.bind(this));
       $("#cf-update-topics").on("click", this.updateTopics.bind(this));
@@ -1032,11 +1034,15 @@
             console.log("loadRunIdsForTopics: выбираем run_id:", lastRunId);
             $select.val(lastRunId);
 
+            // Список тем только по кнопке «Получить темы» — очищаем при смене run
+            $("#cf-topics-list").empty();
+
             // Загружаем список смыслов для выбранного run_id
             this.loadSensesForTopics();
           } else {
             console.log("loadRunIdsForTopics: нет данных о запусках");
             $select.html('<option value="">Нет запусков генерации</option>');
+            $("#cf-topics-list").empty();
           }
         })
         .fail((xhr, status, error) => {
@@ -1202,17 +1208,17 @@
             console.log("listTopics: первая тема в списке:", response.data[0]);
           }
 
-          if (response.success && response.data) {
-            this.showNotice("Темы загружены", "success");
-            this.renderList("topics", response.data, $("#cf-topics-list"));
-
-            // Если для выбранного смысла уже есть темы - блокируем генерацию
+          if (response.success && Array.isArray(response.data)) {
+            const hasTopics = response.data.length > 0;
+            if (hasTopics) {
+              this.showNotice("Темы загружены", "success");
+              this.renderList("topics", response.data, $("#cf-topics-list"));
+            } else {
+              this.showNotice("Для выбранного смысла тем нет", "info");
+              $("#cf-topics-list").empty();
+            }
             const $genBtn = $("#cf-generate-topics");
-            if (
-              meaningId &&
-              Array.isArray(response.data) &&
-              response.data.length > 0
-            ) {
+            if (meaningId && hasTopics) {
               $genBtn.prop("disabled", true).text("Темы уже есть");
             } else {
               $genBtn.prop("disabled", false).text("Сгенерировать темы");
