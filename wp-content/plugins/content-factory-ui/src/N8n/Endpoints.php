@@ -12,6 +12,7 @@ class Endpoints {
     'update_topics' => '/webhook/update-topics',
     'list_topics' => '/webhook/topics/list',
     'get_topic' => '/webhook/topics/get',
+    'update_topic' => '/webhook-test/topics/update-one',
     'generate_article' => '/webhook/generate-article',
     'check_article_status' => '/webhook/check-article-status',
     'update_article_status' => '/webhook/update-article-status',

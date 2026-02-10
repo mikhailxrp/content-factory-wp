@@ -160,6 +160,26 @@ class Router {
       ]
     ]);
 
+    register_rest_route(self::NAMESPACE, '/topics/update-one', [
+      'methods' => 'POST',
+      'callback' => [TopicsController::class, 'update_one'],
+      'permission_callback' => [TopicsController::class, 'check_permission'],
+      'args' => [
+        'run_id' => [
+          'required' => true,
+          'type' => 'string',
+          'description' => 'ID запуска генерации',
+          'sanitize_callback' => 'sanitize_text_field'
+        ],
+        'meaning_id' => [
+          'required' => true,
+          'type' => 'string',
+          'description' => 'ID смысла (meaning_id)',
+          'sanitize_callback' => 'sanitize_text_field'
+        ]
+      ]
+    ]);
+
     register_rest_route(self::NAMESPACE, '/topics/get', [
       'methods' => 'GET',
       'callback' => [TopicsController::class, 'get'],

@@ -40,6 +40,41 @@ WordPress плагин для управления контент-фабрико
 - `POST /webhook-test/update-topics?run_id={run_id}` — обновление существующих тем по run_id
 - `GET /webhook-test/topics/get?id={id}` — получить одну тему по ID
 - `PUT /webhook/topics/{id}/outline` — обновить структуру темы
+- `POST /webhook/topics/update-one` — обновить одну тему по run_id и meaning_id
+
+#### Обновление одной темы
+
+**Endpoint:** `POST /webhook/topics/update-one`
+
+**Тело запроса:**
+
+```json
+{
+  "run_id": "abc123",
+  "meaning_id": "sense-42",
+  "topic": {
+    "topic_candidate_id": "topic-123",
+    "topic_title": "Новый заголовок темы",
+    "angle": "Обновлённый угол",
+    "top3_query_texts": "обновлённый запрос",
+    "reason": "обновлённое обоснование"
+  }
+}
+```
+
+- `run_id` — запуск генерации
+- `meaning_id` — ID смысла
+- `topic` — объект с редактируемыми полями темы (минимум `topic_candidate_id`, остальные по желанию)
+
+**Ответ:**
+
+```json
+{
+  "success": true,
+  "message": "Тема обновлена",
+  "data": { "...": "..." }
+}
+```
 
 ### Статьи
 

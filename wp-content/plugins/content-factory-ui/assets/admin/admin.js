@@ -723,33 +723,46 @@
         const status = item.status || "";
         const date = item.topic_created_at || "";
         const wpPostLink = item.wp_post_link || "";
+        const topicId = item.topic_candidate_id;
+        const runId = item.run_id;
+        const meaningId = item.meaning_id;
 
         // Проверяем, есть ли готовая статья (статус draft и есть ссылка)
         const hasArticle = status === "draft" && wpPostLink;
 
         let html = `
           <div class="cf-ui-detail-inline-header">
-            <h3>${this.escapeHtml(title)}</h3>
+            <h3 class="cf-topic-title" data-field="topic_title">${this.escapeHtml(
+              title,
+            )}</h3>
             <button type="button" class="cf-ui-detail-close">
               <span class="dashicons dashicons-no-alt"></span>
             </button>
           </div>
-          <div class="cf-ui-detail-inline-content">
+          <div class="cf-ui-detail-inline-content" data-topic-id="${topicId}" data-run-id="${runId}" data-meaning-id="${meaningId}">
             <div class="cf-ui-detail-meta">
-              <span><strong>ID:</strong> ${item.topic_candidate_id}</span>
-              <span><strong>Meaning:</strong> ${item.meaning_id}</span>
-              <span><strong>Run:</strong> ${item.run_id}</span>
+              <span><strong>ID:</strong> ${topicId}</span>
+              <span><strong>Meaning:</strong> ${meaningId}</span>
+              <span><strong>Run:</strong> ${runId}</span>
               <span><strong>Статус:</strong> ${this.escapeHtml(status)}</span>
               <span><strong>Оценка:</strong> ${score}</span>
             </div>
             <div class="cf-ui-detail-section">
               <h4>Угол раскрытия темы</h4>
-              <p>${this.escapeHtml(angle)}</p>
+              <p class="cf-topic-field cf-topic-editable" data-field="angle" contenteditable="false">
+                ${this.escapeHtml(angle)}
+              </p>
             </div>
-            ${reason ? `<div class="cf-ui-detail-section"><h4>Обоснование</h4><p>${this.escapeHtml(reason)}</p></div>` : ""}
+            ${
+              reason
+                ? `<div class="cf-ui-detail-section"><h4>Обоснование</h4><p class="cf-topic-field cf-topic-editable" data-field="reason" contenteditable="false">${this.escapeHtml(reason)}</p></div>`
+                : ""
+            }
             <div class="cf-ui-detail-section">
               <h4>Основной запрос</h4>
-              <p>${this.escapeHtml(query)}</p>
+              <p class="cf-topic-field cf-topic-editable" data-field="top3_query_texts" contenteditable="false">
+                ${this.escapeHtml(query)}
+              </p>
               ${queryMeta ? `<p class="cf-ui-detail-small">Метаданные: ${this.escapeHtml(queryMeta)}</p>` : ""}
             </div>
             ${keywords ? `<div class="cf-ui-detail-section"><h4>Ключевые слова</h4><p>${this.escapeHtml(keywords)}</p></div>` : ""}
@@ -761,11 +774,29 @@
               <button type="button" class="button cf-goto-article-btn" data-topic-id="${item.topic_candidate_id}" ${hasArticle ? "" : "disabled"} data-post-link="${hasArticle ? this.escapeHtml(wpPostLink) : ""}">
                 ${hasArticle ? "Перейти к статье" : "Перейти к статье"}
               </button>
+              <button type="button" class="button cf-edit-topic-btn">
+                Редактировать тему
+              </button>
+              <button type="button" class="button button-primary cf-save-topic-btn" disabled>
+                Сохранить
+              </button>
             </div>
           </div>
         `;
 
         $container.html(html);
+
+        const $detail = $container.find(".cf-ui-detail-inline-content");
+        const $fields = $detail.find(".cf-topic-editable");
+        const $editBtn = $detail.find(".cf-edit-topic-btn");
+        const $saveBtn = $detail.find(".cf-save-topic-btn");
+
+        // Сохраняем оригинальные значения для отслеживания изменений
+        const originalValues = {};
+        $fields.each(function () {
+          const field = $(this).data("field");
+          originalValues[field] = $(this).text().trim();
+        });
 
         // Добавляем обработчик для кнопки закрытия
         $container.find(".cf-ui-detail-close").on("click", function () {
@@ -789,6 +820,53 @@
           if (postLink) {
             window.open(postLink, "_blank");
           }
+        });
+
+        // Включаем режим редактирования
+        $editBtn.on("click", () => {
+          $fields.attr("contenteditable", "true").addClass("cf-topic-editing");
+          $saveBtn.prop("disabled", true);
+        });
+
+        // Отслеживаем изменения для активации кнопки сохранения
+        $fields.on("input", () => {
+          let changed = false;
+          $fields.each(function () {
+            const field = $(this).data("field");
+            const current = $(this).text().trim();
+            if (current !== (originalValues[field] || "")) {
+              changed = true;
+            }
+          });
+          $saveBtn.prop("disabled", !changed);
+        });
+
+        // Сохранение изменений
+        $saveBtn.on("click", () => {
+          const runId = $detail.data("run-id");
+          const currentMeaningId = $detail.data("meaning-id");
+          const currentTopicId = $detail.data("topic-id");
+
+          const updated = {};
+          $fields.each(function () {
+            const field = $(this).data("field");
+            updated[field] = $(this).text().trim();
+          });
+
+          updated.topic_candidate_id = currentTopicId;
+
+          cfUI.saveTopicChanges(runId, currentMeaningId, updated, {
+            onSuccess: () => {
+              Object.keys(updated).forEach((key) => {
+                if (key === "topic_candidate_id") return;
+                originalValues[key] = updated[key];
+              });
+              $fields
+                .attr("contenteditable", "false")
+                .removeClass("cf-topic-editing");
+              $saveBtn.prop("disabled", true);
+            },
+          });
         });
 
         return;
@@ -1044,6 +1122,46 @@
         .fail(() => {
           // При ошибке запроса не блокируем генерацию
           $genBtn.prop("disabled", false).text("Сгенерировать темы");
+        });
+    },
+
+    saveTopicChanges(runId, meaningId, topicData, { onSuccess } = {}) {
+      if (!runId || !meaningId || !topicData || !topicData.topic_candidate_id) {
+        this.showNotice("Недостаточно данных для сохранения темы", "error");
+        return;
+      }
+
+      const $saveBtn = $(".cf-save-topic-btn");
+      const originalText = $saveBtn.text();
+      $saveBtn.prop("disabled", true).text("Сохранение...");
+
+      const payload = {
+        run_id: runId,
+        meaning_id: meaningId,
+        topic: topicData,
+      };
+
+      this.apiRequest("topics/update-one", "POST", payload)
+        .done((response) => {
+          if (response.success) {
+            this.showNotice(response.message || "Тема обновлена", "success");
+            if (typeof onSuccess === "function") {
+              onSuccess(response);
+            }
+          } else {
+            this.showNotice(
+              response.message || "Ошибка обновления темы",
+              "error",
+            );
+          }
+        })
+        .fail((xhr) => {
+          const errorMsg =
+            xhr.responseJSON?.message || "Ошибка обновления темы";
+          this.showNotice(errorMsg, "error");
+        })
+        .always(() => {
+          $saveBtn.prop("disabled", false).text(originalText);
         });
     },
 

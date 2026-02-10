@@ -198,6 +198,58 @@ class TopicsController {
   }
 
   /**
+   * Обновить одну тему по run_id и meaning_id
+   */
+  public static function update_one($request) {
+    $run_id = $request->get_param('run_id');
+    $meaning_id = $request->get_param('meaning_id');
+    $data = $request->get_json_params();
+
+    if (empty($run_id) || empty($meaning_id)) {
+      return rest_ensure_response([
+        'success' => false,
+        'message' => __('Не указан run_id или meaning_id', 'content-factory-ui')
+      ]);
+    }
+
+    $topic = isset($data['topic']) && is_array($data['topic']) ? $data['topic'] : [];
+
+    if (empty($topic['topic_candidate_id'])) {
+      return rest_ensure_response([
+        'success' => false,
+        'message' => __('Не указан topic_candidate_id темы', 'content-factory-ui')
+      ]);
+    }
+
+    $client = new Client();
+    $endpoint = Endpoints::get('update_topic') ?? '/webhook/topics/update-one';
+
+    $payload = [
+      'run_id' => $run_id,
+      'meaning_id' => $meaning_id,
+      'topic' => $topic
+    ];
+
+    $response = $client->post($endpoint, $payload);
+
+    if (is_wp_error($response)) {
+      return rest_ensure_response([
+        'success' => false,
+        'message' => $response->get_error_message()
+      ]);
+    }
+
+    // Сбрасываем кэш после обновления
+    TransientCache::delete('topics_list');
+
+    return rest_ensure_response([
+      'success' => true,
+      'message' => __('Тема обновлена', 'content-factory-ui'),
+      'data' => $response
+    ]);
+  }
+
+  /**
    * Генерация статьи из темы
    */
   public static function generate_article($request) {
