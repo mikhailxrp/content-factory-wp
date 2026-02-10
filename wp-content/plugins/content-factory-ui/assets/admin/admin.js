@@ -1208,12 +1208,16 @@
             console.log("listTopics: первая тема в списке:", response.data[0]);
           }
 
-          if (response.success && Array.isArray(response.data)) {
-            const hasTopics = response.data.length > 0;
+          if (!response.success) {
+            this.showNotice(response.message || "Ошибка загрузки тем", "error");
+          } else {
+            const hasTopics =
+              Array.isArray(response.data) && response.data.length > 0;
             if (hasTopics) {
               this.showNotice("Темы загружены", "success");
               this.renderList("topics", response.data, $("#cf-topics-list"));
             } else {
+              // data === null или пустой массив
               this.showNotice("Для выбранного смысла тем нет", "info");
               $("#cf-topics-list").empty();
             }
@@ -1223,8 +1227,6 @@
             } else {
               $genBtn.prop("disabled", false).text("Сгенерировать темы");
             }
-          } else {
-            this.showNotice(response.message || "Ошибка загрузки тем", "error");
           }
         })
         .fail((xhr) => {
