@@ -12,7 +12,10 @@ class LogsController {
    * Список логов
    */
   public static function list($request) {
+    error_log('[LogsController] Запрос на получение логов');
     $logs = Logger::get_logs();
+    error_log('[LogsController] Получено логов: ' . count($logs));
+    error_log('[LogsController] Данные логов: ' . print_r($logs, true));
 
     return rest_ensure_response([
       'success' => true,

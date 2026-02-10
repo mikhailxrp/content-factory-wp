@@ -12,18 +12,26 @@ class Logger {
    * Получить логи из n8n
    */
   public static function get_logs() {
+    error_log('[Logger] === НАЧАЛО get_logs() ===');
+    
     $endpoint = Endpoints::get('get_logs');
+    error_log('[Logger] Endpoint: ' . ($endpoint ?? 'NULL'));
     
     if (!$endpoint) {
+      error_log('[Logger] Endpoint не найден, возврат []');
       return [];
     }
 
     $base_url = \ContentFactoryUI\Settings\SettingsRepository::get('n8n_url');
+    error_log('[Logger] Base URL: ' . ($base_url ?? 'NULL'));
+    
     if (!$base_url) {
+      error_log('[Logger] Base URL не найден, возврат []');
       return [];
     }
 
     $url = rtrim($base_url, '/') . '/' . ltrim($endpoint, '/');
+    error_log('[Logger] Итоговый URL: ' . $url);
     
     $response = wp_remote_get($url, [
       'timeout' => 30,
