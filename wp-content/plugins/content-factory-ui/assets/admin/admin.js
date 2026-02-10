@@ -1042,6 +1042,18 @@
           if (response.success && response.data) {
             this.showNotice("Темы загружены", "success");
             this.renderList("topics", response.data, $("#cf-topics-list"));
+
+            // Если для выбранного смысла уже есть темы - блокируем генерацию
+            const $genBtn = $("#cf-generate-topics");
+            if (
+              meaningId &&
+              Array.isArray(response.data) &&
+              response.data.length > 0
+            ) {
+              $genBtn.prop("disabled", true).text("Темы уже есть");
+            } else {
+              $genBtn.prop("disabled", false).text("Сгенерировать темы");
+            }
           } else {
             this.showNotice(response.message || "Ошибка загрузки тем", "error");
           }
@@ -1049,6 +1061,10 @@
         .fail((xhr) => {
           const errorMsg = xhr.responseJSON?.message || "Ошибка загрузки тем";
           this.showNotice(errorMsg, "error");
+          // На ошибке не блокируем генерацию
+          $("#cf-generate-topics")
+            .prop("disabled", false)
+            .text("Сгенерировать темы");
         })
         .always(() => {
           $btn.prop("disabled", false).text(originalText);
