@@ -12,10 +12,7 @@ class LogsController {
    * Список логов
    */
   public static function list($request) {
-    $type = $request->get_param('type');
-    $limit = $request->get_param('limit') ?? 50;
-
-    $logs = Logger::get_logs($type, $limit);
+    $logs = Logger::get_logs();
 
     return rest_ensure_response([
       'success' => true,

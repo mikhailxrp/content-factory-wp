@@ -13,6 +13,9 @@
       observer: null,
     },
 
+    // Данные логов
+    allLogs: [],
+
     init() {
       // Проверка наличия глобальных данных
       if (!window.cfUIData || !window.cfUIData.restUrl) {
@@ -56,9 +59,8 @@
       $("#cf-refresh-articles").on("click", this.loadArticles.bind(this));
 
       // Logs
-      $("#cf-logs-filter").on("change", this.filterLogs.bind(this));
-      $("#cf-refresh-logs").on("click", () => this.loadList("logs"));
-      $("#cf-clear-logs").on("click", this.clearLogs.bind(this));
+      $("#cf-logs-search").on("input", this.filterLogs.bind(this));
+      $("#cf-refresh-logs").on("click", this.loadLogs.bind(this));
 
       // Telegram
       $("#cf-tg-generate-form").on("submit", this.generateTelegram.bind(this));
@@ -94,7 +96,7 @@
             this.loadArticlesForSelect();
             break;
           case "logs":
-            this.loadList("logs");
+            this.loadLogs();
             break;
           case "prompts":
             this.loadPrompts();
@@ -824,45 +826,66 @@
     },
 
     // Logs
+    loadLogs() {
+      console.log("[LOGS] Загрузка логов от n8n...");
+      this.apiRequest("logs")
+        .done((response) => {
+          console.log("[LOGS] Получен ответ:", response);
+          if (response.success) {
+            this.allLogs = response.data || [];
+            console.log("[LOGS] Всего записей:", this.allLogs.length);
+            console.log("[LOGS] Данные:", this.allLogs);
+            this.filterLogs();
+          } else {
+            console.error("[LOGS] Ошибка загрузки логов");
+          }
+        })
+        .fail((error) => {
+          console.error("[LOGS] Ошибка запроса:", error);
+        });
+    },
+
     filterLogs() {
-      const type = $("#cf-logs-filter").val();
-      this.apiRequest(`logs?type=${type}`).done((response) => {
-        if (response.success) {
-          this.renderLogs(response.data);
-        }
-      });
+      if (!this.allLogs) {
+        this.loadLogs();
+        return;
+      }
+
+      const searchText = $("#cf-logs-search").val().toLowerCase();
+      const filtered = searchText
+        ? this.allLogs.filter(
+            (log) => log.title && log.title.toLowerCase().includes(searchText),
+          )
+        : this.allLogs;
+
+      this.renderLogs(filtered);
     },
 
     renderLogs(logs) {
       const $list = $("#cf-logs-list");
 
       if (!logs || logs.length === 0) {
-        $list.html("<p>Логов нет</p>");
+        $list.html("<p>Логов не найдено</p>");
         return;
       }
 
       const html = logs
         .map(
           (log) => `
-        <div class="cf-ui-log-item log-${log.type}">
-          <div class="log-timestamp">${log.timestamp}</div>
-          <div class="log-details">${JSON.stringify(log, null, 2)}</div>
+        <div class="cf-ui-log-item log-${log.status || "info"}">
+          <div class="log-header">
+            <span class="log-timestamp">${log.timestamp || ""}</span>
+            <span class="log-title"><strong>${log.title || "Без названия"}</strong></span>
+            <span class="log-status badge badge-${log.status || "info"}">${log.status || ""}</span>
+          </div>
+          ${log.message ? `<div class="log-message">${log.message}</div>` : ""}
+          ${log.details ? `<details class="log-details-toggle"><summary>Подробности</summary><pre>${JSON.stringify(log.details, null, 2)}</pre></details>` : ""}
         </div>
       `,
         )
         .join("");
 
       $list.html(html);
-    },
-
-    clearLogs() {
-      if (!confirm("Очистить все логи?")) return;
-
-      this.apiRequest("logs/clear", "POST").done((response) => {
-        if (response.success) {
-          $("#cf-logs-list").html("<p>Логи очищены</p>");
-        }
-      });
     },
 
     // Utilities

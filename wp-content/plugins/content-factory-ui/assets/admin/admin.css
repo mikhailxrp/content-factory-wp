@@ -308,19 +308,19 @@
 }
 
 .cf-ui-log-item {
-  padding: 10px;
-  margin-bottom: 10px;
+  padding: 15px;
+  margin-bottom: 12px;
   border: 1px solid #ddd;
-  border-radius: 4px;
-  font-family: "Courier New", monospace;
-  font-size: 12px;
+  border-radius: 6px;
+  background: #fff;
+  transition: all 0.2s ease;
 }
 
-.cf-ui-log-item.log-request {
-  border-left: 4px solid #2271b1;
+.cf-ui-log-item:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.cf-ui-log-item.log-response {
+.cf-ui-log-item.log-success {
   border-left: 4px solid #46b450;
 }
 
@@ -329,15 +329,100 @@
   background: #fef7f1;
 }
 
-.cf-ui-log-item .log-timestamp {
-  color: #999;
-  font-size: 11px;
-  margin-bottom: 5px;
+.cf-ui-log-item.log-processing {
+  border-left: 4px solid #fcb900;
 }
 
-.cf-ui-log-item .log-details {
+.cf-ui-log-item.log-info {
+  border-left: 4px solid #2271b1;
+}
+
+.cf-ui-log-item .log-header {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.cf-ui-log-item .log-timestamp {
+  color: #787c82;
+  font-size: 12px;
+  font-family: "Courier New", monospace;
+}
+
+.cf-ui-log-item .log-title {
+  flex: 1;
+  font-size: 14px;
+  color: #1d2327;
+}
+
+.cf-ui-log-item .log-status {
+  padding: 3px 8px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.cf-ui-log-item .badge-success {
+  background: #ecf7ed;
+  color: #155724;
+}
+
+.cf-ui-log-item .badge-error {
+  background: #fef7f1;
+  color: #721c24;
+}
+
+.cf-ui-log-item .badge-processing {
+  background: #fcf9e8;
+  color: #996800;
+}
+
+.cf-ui-log-item .badge-info {
+  background: #e5f5fa;
+  color: #004085;
+}
+
+.cf-ui-log-item .log-message {
+  color: #50575e;
+  font-size: 13px;
+  line-height: 1.6;
+  margin-bottom: 10px;
+}
+
+.cf-ui-log-item .log-details-toggle {
+  margin-top: 10px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  padding: 10px;
+  background: #f9f9f9;
+}
+
+.cf-ui-log-item .log-details-toggle summary {
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  color: #2271b1;
+  user-select: none;
+}
+
+.cf-ui-log-item .log-details-toggle summary:hover {
+  color: #135e96;
+}
+
+.cf-ui-log-item .log-details-toggle pre {
+  margin: 10px 0 0 0;
+  padding: 10px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
   white-space: pre-wrap;
   word-break: break-all;
+  font-family: "Courier New", monospace;
+  font-size: 11px;
+  overflow-x: auto;
 }
 
 /* Status badges */
