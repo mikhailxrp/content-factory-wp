@@ -790,7 +790,7 @@
         $container.html(html);
 
         const $detail = $container.find(".cf-ui-detail-inline-content");
-        const $fields = $detail.find(".cf-topic-editable");
+        const $fields = $container.find(".cf-topic-editable");
         const $editBtn = $detail.find(".cf-edit-topic-btn");
         const $saveBtn = $detail.find(".cf-save-topic-btn");
 
