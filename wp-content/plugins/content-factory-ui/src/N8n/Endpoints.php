@@ -19,7 +19,7 @@ class Endpoints {
     'generate_telegram' => '/webhook-test/generate-telegram',
     'publish_telegram' => '/webhook-test/publish-telegram',
     'test_connection' => '/webhook/test',
-    'list_run_ids' => '/webhook/senses/run-ids',
+    'list_run_ids' => '/webhook-test/senses/run-ids',
     'list_senses_by_run_id' => '/webhook/senses/list',
     'get_sense' => '/webhook/senses',
     'list_prompts' => '/webhook/prompts/list',
