@@ -7,7 +7,7 @@ namespace ContentFactoryUI\N8n;
  */
 class Endpoints {
   private static $endpoints = [
-    'generate_senses' => '/webhook-test/generate-senses',
+    'generate_senses' => '/webhook/generate-senses',
     'generate_topics' => '/webhook/generate-topics',
     'update_topics' => '/webhook/update-topics',
     'list_topics' => '/webhook/topics/list',
