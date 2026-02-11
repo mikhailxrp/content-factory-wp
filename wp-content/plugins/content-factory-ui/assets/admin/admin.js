@@ -1077,18 +1077,23 @@
 
       const html = logs
         .map((log) => {
-          const status = log.status || "info";
+          const rawStatus = log.status || "info";
+          // completed визуально отображаем так же, как success
+          const visualStatus =
+            rawStatus === "completed" ? "success" : rawStatus;
           const title = log.title || "Без названия";
           const timestamp = log.created_at || log.timestamp || "";
           const message = log.error_message || log.message || "";
           const detailsJson = this.escapeHtml(JSON.stringify(log, null, 2));
 
           return `
-        <div class="cf-ui-log-item log-${status}">
+        <div class="cf-ui-log-item log-${visualStatus}">
           <div class="log-header">
             <span class="log-timestamp">${this.escapeHtml(timestamp)}</span>
             <span class="log-title"><strong>${this.escapeHtml(title)}</strong></span>
-            <span class="log-status badge badge-${this.escapeHtml(status)}">${this.escapeHtml(status)}</span>
+            <span class="log-status badge badge-${this.escapeHtml(
+              visualStatus,
+            )}">${this.escapeHtml(rawStatus)}</span>
           </div>
           ${
             message
