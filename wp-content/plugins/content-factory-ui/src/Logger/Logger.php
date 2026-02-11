@@ -62,6 +62,12 @@ class Logger {
       return [];
     }
 
+    // Формат: [ {...}, {...} ] — массив логов без обёртки
+    if (is_array($decoded) && isset($decoded[0]) && is_array($decoded[0])) {
+      error_log('[Logger] Найден формат [ {...}, {...} ], количество: ' . count($decoded));
+      return $decoded;
+    }
+
     // n8n возвращает: [{"items": [...]}]
     if (isset($decoded[0]['items'])) {
       error_log('[Logger] Найден формат [{"items": [...]}], количество: ' . count($decoded[0]['items']));
