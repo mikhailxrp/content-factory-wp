@@ -1076,22 +1076,54 @@
       }
 
       const html = logs
-        .map(
-          (log) => `
-        <div class="cf-ui-log-item log-${log.status || "info"}">
+        .map((log) => {
+          const status = log.status || "info";
+          const title = log.title || "Без названия";
+          const timestamp = log.created_at || log.timestamp || "";
+          const message = log.error_message || log.message || "";
+          const detailsJson = this.escapeHtml(JSON.stringify(log, null, 2));
+
+          return `
+        <div class="cf-ui-log-item log-${status}">
           <div class="log-header">
-            <span class="log-timestamp">${log.timestamp || ""}</span>
-            <span class="log-title"><strong>${log.title || "Без названия"}</strong></span>
-            <span class="log-status badge badge-${log.status || "info"}">${log.status || ""}</span>
+            <span class="log-timestamp">${this.escapeHtml(timestamp)}</span>
+            <span class="log-title"><strong>${this.escapeHtml(title)}</strong></span>
+            <span class="log-status badge badge-${this.escapeHtml(status)}">${this.escapeHtml(status)}</span>
           </div>
-          ${log.message ? `<div class="log-message">${log.message}</div>` : ""}
-          ${log.details ? `<details class="log-details-toggle"><summary>Подробности</summary><pre>${JSON.stringify(log.details, null, 2)}</pre></details>` : ""}
+          ${
+            message
+              ? `<div class="log-message">${this.escapeHtml(message)}</div>`
+              : ""
+          }
+          <details class="log-details-toggle">
+            <summary>Подробности</summary>
+            <pre>${detailsJson}</pre>
+          </details>
         </div>
-      `,
-        )
+      `;
+        })
         .join("");
 
       $list.html(html);
+
+      // Клик по карточке разворачивает/сворачивает подробности
+      $list.find(".cf-ui-log-item").on("click", function (e) {
+        // Не ломаем стандартное поведение, если клик по summary/ссылкам/кнопкам
+        if (
+          $(e.target).closest("summary, a, button, .log-details-toggle").length
+        ) {
+          return;
+        }
+
+        const $details = $(this).find(".log-details-toggle").first();
+        if ($details.length) {
+          if ($details.attr("open")) {
+            $details.removeAttr("open");
+          } else {
+            $details.attr("open", "open");
+          }
+        }
+      });
     },
 
     // Utilities
