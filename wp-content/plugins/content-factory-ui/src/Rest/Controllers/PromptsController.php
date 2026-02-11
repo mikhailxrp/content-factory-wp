@@ -4,6 +4,7 @@ namespace ContentFactoryUI\Rest\Controllers;
 
 use ContentFactoryUI\N8n\Client;
 use ContentFactoryUI\N8n\Endpoints;
+use ContentFactoryUI\Logger\Logger;
 
 /**
  * REST контроллер для промптов
@@ -13,17 +14,16 @@ class PromptsController {
    * Список всех промптов
    */
   public static function list($request) {
-    error_log('=== Запрос списка промптов ===');
+    Logger::debug('=== Запрос списка промптов ===');
     
     $client = new Client();
     $endpoint = Endpoints::get('list_prompts');
-    error_log('Endpoint: ' . $endpoint);
     
     $prompts = $client->get($endpoint);
-    error_log('Ответ от n8n: ' . print_r($prompts, true));
+    Logger::debug('Ответ от n8n', $prompts);
 
     if (is_wp_error($prompts)) {
-      error_log('Ошибка WP: ' . $prompts->get_error_message());
+      Logger::error('Ошибка WP: ' . $prompts->get_error_message());
       return rest_ensure_response([
         'success' => false,
         'message' => $prompts->get_error_message()
@@ -32,11 +32,9 @@ class PromptsController {
 
     // Если n8n вернул один объект вместо массива, оборачиваем в массив
     if (is_array($prompts) && !isset($prompts[0]) && isset($prompts['id'])) {
-      error_log('n8n вернул один объект промпта, оборачиваем в массив');
+      Logger::debug('n8n вернул один объект промпта, оборачиваем в массив');
       $prompts = [$prompts];
     }
-
-    error_log('Финальный результат для отправки: ' . print_r($prompts, true));
 
     return rest_ensure_response([
       'success' => true,
@@ -50,8 +48,7 @@ class PromptsController {
   public static function create($request) {
     $data = $request->get_json_params();
     
-    error_log('=== Создание нового промпта ===');
-    error_log('Данные: ' . print_r($data, true));
+    Logger::debug('=== Создание нового промпта ===', $data);
     
     // Валидация обязательных полей
     if (empty($data['angle']) || empty($data['template_name']) || empty($data['system_prompt'])) {
@@ -76,13 +73,10 @@ class PromptsController {
     $client = new Client();
     $endpoint = Endpoints::get('create_prompt');
     
-    error_log('Отправка данных в n8n: ' . print_r($payload, true));
-    
     $response = $client->post($endpoint, $payload);
-    error_log('Ответ от n8n: ' . print_r($response, true));
 
     if (is_wp_error($response)) {
-      error_log('Ошибка WP: ' . $response->get_error_message());
+      Logger::error('Ошибка WP: ' . $response->get_error_message());
       return rest_ensure_response([
         'success' => false,
         'message' => $response->get_error_message()
@@ -103,9 +97,7 @@ class PromptsController {
     $id = $request->get_param('id');
     $data = $request->get_json_params();
     
-    error_log('=== Обновление промпта ===');
-    error_log('ID: ' . $id);
-    error_log('Данные: ' . print_r($data, true));
+    Logger::debug("=== Обновление промпта ID: $id ===", $data);
     
     // Валидация обязательных полей
     if (empty($data['angle']) || empty($data['template_name']) || empty($data['system_prompt'])) {
@@ -131,13 +123,10 @@ class PromptsController {
     $client = new Client();
     $endpoint = Endpoints::get('update_prompt');
     
-    error_log('Отправка данных в n8n: ' . print_r($payload, true));
-    
     $response = $client->post($endpoint, $payload);
-    error_log('Ответ от n8n: ' . print_r($response, true));
 
     if (is_wp_error($response)) {
-      error_log('Ошибка WP: ' . $response->get_error_message());
+      Logger::error('Ошибка WP: ' . $response->get_error_message());
       return rest_ensure_response([
         'success' => false,
         'message' => $response->get_error_message()
@@ -157,8 +146,7 @@ class PromptsController {
   public static function delete($request) {
     $id = $request->get_param('id');
     
-    error_log('=== Удаление промпта ===');
-    error_log('ID: ' . $id);
+    Logger::debug("=== Удаление промпта ID: $id ===");
     
     if (empty($id)) {
       return rest_ensure_response([
@@ -169,7 +157,7 @@ class PromptsController {
     
     // Защита дефолтных промптов (ID 1-21)
     if ((int)$id <= 21) {
-      error_log('Попытка удалить системный промпт: ' . $id);
+      Logger::error("Попытка удалить системный промпт: $id");
       return rest_ensure_response([
         'success' => false,
         'message' => 'Нельзя удалить системный промпт. Системные промпты имеют ID от 1 до 21.'
@@ -180,10 +168,9 @@ class PromptsController {
     $endpoint = Endpoints::get('delete_prompt');
     
     $response = $client->post($endpoint, ['id' => $id]);
-    error_log('Ответ от n8n: ' . print_r($response, true));
 
     if (is_wp_error($response)) {
-      error_log('Ошибка WP: ' . $response->get_error_message());
+      Logger::error('Ошибка WP: ' . $response->get_error_message());
       return rest_ensure_response([
         'success' => false,
         'message' => $response->get_error_message()

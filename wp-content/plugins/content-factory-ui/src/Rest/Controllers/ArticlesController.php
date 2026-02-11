@@ -6,6 +6,7 @@ use ContentFactoryUI\N8n\Client;
 use ContentFactoryUI\N8n\Endpoints;
 use ContentFactoryUI\WP\PostPublisher;
 use ContentFactoryUI\Cache\TransientCache;
+use ContentFactoryUI\Logger\Logger;
 
 /**
  * REST контроллер для статей
@@ -42,19 +43,19 @@ class ArticlesController {
       $url .= '?' . http_build_query($params);
     }
     
-    error_log('[ArticlesController] Запрос списка статей: ' . $url);
+    Logger::debug('Запрос списка статей: ' . $url);
     
     $articles = $client->get($url);
 
     if (is_wp_error($articles)) {
-      error_log('[ArticlesController] Ошибка: ' . $articles->get_error_message());
+      Logger::error('Ошибка: ' . $articles->get_error_message());
       return rest_ensure_response([
         'success' => false,
         'message' => $articles->get_error_message()
       ]);
     }
 
-    error_log('[ArticlesController] Получено статей: ' . count($articles));
+    Logger::debug('Получено статей: ' . count($articles));
 
     return rest_ensure_response([
       'success' => true,

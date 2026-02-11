@@ -5,6 +5,7 @@ namespace ContentFactoryUI\Rest\Controllers;
 use ContentFactoryUI\N8n\Client;
 use ContentFactoryUI\N8n\Endpoints;
 use ContentFactoryUI\Cache\TransientCache;
+use ContentFactoryUI\Logger\Logger;
 
 /**
  * REST контроллер для тем
@@ -277,21 +278,20 @@ class TopicsController {
     
     $endpoint = Endpoints::get('generate_article');
     
-    error_log('[TopicsController] Генерация статьи для темы ID: ' . $id);
-    error_log('[TopicsController] Endpoint: ' . $endpoint);
+    Logger::debug("Генерация статьи для темы ID: $id");
     
     // Отправляем id как query-параметр
     $response = $client->post($endpoint . '?id=' . urlencode($id));
 
     if (is_wp_error($response)) {
-      error_log('[TopicsController] Ошибка генерации: ' . $response->get_error_message());
+      Logger::error('Ошибка генерации: ' . $response->get_error_message());
       return rest_ensure_response([
         'success' => false,
         'message' => $response->get_error_message()
       ]);
     }
 
-    error_log('[TopicsController] Статья успешно сгенерирована');
+    Logger::debug('Статья успешно сгенерирована');
     
     // Сбрасываем кэш статей
     TransientCache::delete('articles_list');
@@ -319,20 +319,20 @@ class TopicsController {
     $client = new Client();
     $endpoint = Endpoints::get('check_article_status');
     
-    error_log('[TopicsController] Проверка статуса генерации статьи для темы ID: ' . $id);
+    Logger::debug("Проверка статуса генерации статьи для темы ID: $id");
     
     // Отправляем id как query-параметр
     $response = $client->get($endpoint . '?id=' . urlencode($id));
 
     if (is_wp_error($response)) {
-      error_log('[TopicsController] Ошибка проверки статуса: ' . $response->get_error_message());
+      Logger::error('Ошибка проверки статуса: ' . $response->get_error_message());
       return rest_ensure_response([
         'success' => false,
         'message' => $response->get_error_message()
       ]);
     }
 
-    error_log('[TopicsController] Статус получен: ' . json_encode($response));
+    Logger::debug('Статус получен', $response);
 
     return rest_ensure_response([
       'success' => true,

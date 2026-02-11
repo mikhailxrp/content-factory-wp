@@ -11,6 +11,7 @@ use ContentFactoryUI\Rest\Controllers\TelegramController;
 use ContentFactoryUI\Rest\Controllers\LogsController;
 use ContentFactoryUI\Rest\Controllers\PromptsController;
 use ContentFactoryUI\Rest\Controllers\PostEditorController;
+use ContentFactoryUI\Logger\Logger;
 
 /**
  * Регистрация REST API маршрутов
@@ -22,7 +23,7 @@ class Router {
    * Регистрация всех маршрутов
    */
   public static function register() {
-    error_log('=== Регистрация REST API роутов ===');
+    Logger::debug('=== Регистрация REST API роутов ===');
     // Settings
     register_rest_route(self::NAMESPACE, '/settings', [
       [
@@ -83,7 +84,7 @@ class Router {
         ]
       ]
     ]);
-    error_log('Регистрация роута /senses/list: ' . ($result ? 'SUCCESS' : 'FAILED'));
+    Logger::debug('Регистрация роута /senses/list: ' . ($result ? 'SUCCESS' : 'FAILED'));
 
     register_rest_route(self::NAMESPACE, '/senses/(?P<id>[a-zA-Z0-9_-]+)', [
       'methods' => 'GET',

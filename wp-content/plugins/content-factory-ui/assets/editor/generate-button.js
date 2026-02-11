@@ -76,7 +76,6 @@
           setPrompts(activePrompts);
         }
       } catch (err) {
-        console.error("Ошибка загрузки промптов:", err);
       } finally {
         setIsLoadingPrompts(false);
       }
@@ -180,7 +179,6 @@
           setIsGenerating(false);
         }
       } catch (err) {
-        console.error("Ошибка генерации:", err);
         setError(err.message || "Ошибка при отправке запроса");
         setIsGenerating(false);
       }
@@ -204,19 +202,7 @@
           path: `/content-factory/v1/posts/${postId}/check-article-status`,
           method: "GET",
         });
-
-        console.log("=== CHECK ARTICLE STATUS ===");
-        console.log("Response:", response);
-        console.log("response.success:", response.success);
-        console.log("response.data:", response.data);
-
         if (response.data) {
-          console.log("Status:", response.data.status);
-          console.log("Post ID:", response.data.post_id);
-          console.log("Has content:", !!response.data.content);
-          console.log("Content length:", response.data.content?.length);
-          console.log("Title:", response.data.title);
-          console.log("Error message:", response.data.error_message);
         }
 
         if (response.success && response.data) {
@@ -290,7 +276,6 @@
           // Если status === 'processing' или 'started', продолжаем polling
         }
       } catch (err) {
-        console.error("Ошибка проверки статуса:", err);
         // Не останавливаем polling при ошибке проверки, продолжаем попытки
       }
     };

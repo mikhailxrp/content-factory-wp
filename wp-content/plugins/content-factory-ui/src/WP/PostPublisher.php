@@ -2,6 +2,8 @@
 
 namespace ContentFactoryUI\WP;
 
+use ContentFactoryUI\Logger\Logger;
+
 /**
  * Создание и обновление WP постов
  */
@@ -109,11 +111,11 @@ class PostPublisher {
     $result = wp_update_post($update_data, true);
 
     if (is_wp_error($result)) {
-      error_log('[PostPublisher] Ошибка обновления поста: ' . $result->get_error_message());
+      Logger::error('Ошибка обновления поста: ' . $result->get_error_message());
       return $result;
     }
 
-    error_log('[PostPublisher] Пост ID ' . $post_id . ' успешно обновлен');
+    Logger::debug("Пост ID $post_id успешно обновлен");
     return $result;
   }
 }

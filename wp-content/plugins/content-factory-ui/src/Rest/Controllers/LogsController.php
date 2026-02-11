@@ -9,13 +9,14 @@ use ContentFactoryUI\Logger\Logger;
  */
 class LogsController {
   /**
-   * Список логов
+   * Получить логи из n8n
    */
   public static function list($request) {
-    error_log('[LogsController] Запрос на получение логов');
+    Logger::debug('=== Запрос на получение логов ===');
+    
     $logs = Logger::get_logs();
-    error_log('[LogsController] Получено логов: ' . count($logs));
-    error_log('[LogsController] Данные логов: ' . print_r($logs, true));
+    
+    Logger::debug('Получено логов: ' . count($logs));
 
     return rest_ensure_response([
       'success' => true,
@@ -24,21 +25,9 @@ class LogsController {
   }
 
   /**
-   * Очистить логи
-   */
-  public static function clear($request) {
-    Logger::clear_logs();
-
-    return rest_ensure_response([
-      'success' => true,
-      'message' => __('Логи очищены', 'content-factory-ui')
-    ]);
-  }
-
-  /**
    * Проверка прав доступа
    */
   public static function check_permission() {
-    return current_user_can('manage_options');
+    return current_user_can('edit_posts');
   }
 }

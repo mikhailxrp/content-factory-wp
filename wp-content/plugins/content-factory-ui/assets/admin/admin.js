@@ -19,7 +19,6 @@
     init() {
       // Проверка наличия глобальных данных
       if (!window.cfUIData || !window.cfUIData.restUrl) {
-        console.error("cfUIData global object not found");
         return;
       }
 
@@ -116,8 +115,6 @@
     // API requests
     apiRequest(endpoint, method = "GET", data = null) {
       const url = `${window.cfUIData.restUrl}/${endpoint}`;
-      console.log(`[API] ${method} ${url}`, data ? data : "");
-
       return $.ajax({
         url: url,
         method: method,
@@ -128,16 +125,9 @@
         },
       })
         .done((response) => {
-          console.log(`[API] ${method} ${url} - Success:`, response);
           return response;
         })
         .fail((xhr, status, error) => {
-          console.error(
-            `[API] ${method} ${url} - Error:`,
-            status,
-            error,
-            xhr.responseJSON,
-          );
           throw xhr;
         });
     },
@@ -216,19 +206,14 @@
         target_audience: $("#target_audience").val(),
         keywords: keywords,
       };
-
-      console.log("Sending context data:", data);
-
       this.apiRequest("context", "POST", data)
         .done((response) => {
-          console.log("Response:", response);
           this.showNotice(
             response.message,
             response.success ? "success" : "error",
           );
         })
         .fail((xhr) => {
-          console.error("Error:", xhr.status, xhr.responseJSON);
           const errorMsg =
             xhr.responseJSON?.message || window.cfUIData.i18n.error;
           this.showNotice(errorMsg, "error");
@@ -258,22 +243,12 @@
 
     // Senses - работа с run_id
     loadRunIds() {
-      console.log("=== loadRunIds: начало загрузки run_ids ===");
       const $select = $("#cf-run-id-select");
       $select.html('<option value="">Загрузка...</option>');
 
       this.apiRequest("senses/run-ids")
         .done((response) => {
-          console.log("loadRunIds: получен ответ", response);
-          console.log("response.success:", response.success);
-          console.log("response.data:", response.data);
-          console.log(
-            "response.data.length:",
-            response.data ? response.data.length : "undefined",
-          );
-
           if (response.success && response.data && response.data.length > 0) {
-            console.log("loadRunIds: формируем опции для селекта");
             const options = response.data
               .map(
                 (runId) =>
@@ -284,16 +259,12 @@
 
             // Автоматически выбираем последний (первый в списке)
             const lastRunId = response.data[0];
-            console.log("loadRunIds: выбираем run_id:", lastRunId);
             $select.val(lastRunId);
           } else {
-            console.log("loadRunIds: нет данных о запусках");
             $select.html('<option value="">Нет запусков генерации</option>');
           }
         })
         .fail((xhr, status, error) => {
-          console.error("loadRunIds: ошибка загрузки", xhr, status, error);
-          console.error("loadRunIds: xhr.responseJSON:", xhr.responseJSON);
           $select.html('<option value="">Ошибка загрузки</option>');
           $("#cf-senses-list").html(
             '<p class="cf-ui-notice error">Ошибка загрузки run_id</p>',
@@ -302,16 +273,12 @@
     },
 
     refreshRunIds() {
-      console.log("=== refreshRunIds: обновление списка run_ids ===");
       this.loadRunIds();
     },
 
     loadSensesByRunId() {
       const runId = $("#cf-run-id-select").val();
-      console.log("=== loadSensesByRunId: загрузка смыслов для run_id:", runId);
-
       if (!runId) {
-        console.log("loadSensesByRunId: run_id не выбран");
         $("#cf-senses-list").html("<p>Выберите запуск генерации</p>");
         return;
       }
@@ -320,29 +287,15 @@
       $list.html("<p>" + window.cfUIData.i18n.loading + "</p>");
 
       const url = `senses/list?run_id=${encodeURIComponent(runId)}`;
-      console.log("loadSensesByRunId: запрос к URL:", url);
-
       this.apiRequest(url)
         .done((response) => {
-          console.log("loadSensesByRunId: получен ответ", response);
           if (response.success && response.data) {
-            console.log(
-              "loadSensesByRunId: рендерим список, количество:",
-              response.data.length,
-            );
             this.renderList("senses", response.data, $list);
           } else {
-            console.log("loadSensesByRunId: нет данных для запуска");
             $list.html("<p>Нет данных для выбранного запуска</p>");
           }
         })
         .fail((xhr, status, error) => {
-          console.error(
-            "loadSensesByRunId: ошибка загрузки",
-            xhr,
-            status,
-            error,
-          );
           $list.html(
             '<p class="cf-ui-notice error">Ошибка загрузки смыслов</p>',
           );
@@ -456,8 +409,6 @@
       });
 
       this.topicsData.displayed = end;
-
-      console.log(`Загружено тем: ${end} из ${this.topicsData.all.length}`);
     },
 
     renderListItem(type, item) {
@@ -1033,21 +984,15 @@
 
     // Logs
     loadLogs() {
-      console.log("[LOGS] Загрузка логов от n8n...");
       this.apiRequest("logs")
         .done((response) => {
-          console.log("[LOGS] Получен ответ:", response);
           if (response.success) {
             this.allLogs = response.data || [];
-            console.log("[LOGS] Всего записей:", this.allLogs.length);
-            console.log("[LOGS] Данные:", this.allLogs);
             this.initLogsDateFilter();
           } else {
-            console.error("[LOGS] Ошибка загрузки логов");
           }
         })
         .fail((error) => {
-          console.error("[LOGS] Ошибка запроса:", error);
         });
     },
 
@@ -1191,18 +1136,12 @@
 
     // Topics - работа с run_id
     loadRunIdsForTopics() {
-      console.log(
-        "=== loadRunIdsForTopics: начало загрузки run_ids для тем ===",
-      );
       const $select = $("#cf-topics-run-id-select");
       $select.html('<option value="">Загрузка...</option>');
 
       this.apiRequest("senses/run-ids")
         .done((response) => {
-          console.log("loadRunIdsForTopics: получен ответ", response);
-
           if (response.success && response.data && response.data.length > 0) {
-            console.log("loadRunIdsForTopics: формируем опции для селекта");
             const options = response.data
               .map(
                 (runId) =>
@@ -1213,7 +1152,6 @@
 
             // Автоматически выбираем последний (первый в списке)
             const lastRunId = response.data[0];
-            console.log("loadRunIdsForTopics: выбираем run_id:", lastRunId);
             $select.val(lastRunId);
 
             // Список тем только по кнопке «Получить темы» — очищаем при смене run
@@ -1222,18 +1160,11 @@
             // Загружаем список смыслов для выбранного run_id
             this.loadSensesForTopics();
           } else {
-            console.log("loadRunIdsForTopics: нет данных о запусках");
             $select.html('<option value="">Нет запусков генерации</option>');
             $("#cf-topics-list").empty();
           }
         })
         .fail((xhr, status, error) => {
-          console.error(
-            "loadRunIdsForTopics: ошибка загрузки",
-            xhr,
-            status,
-            error,
-          );
           $select.html('<option value="">Ошибка загрузки</option>');
         });
     },
@@ -1418,16 +1349,8 @@
 
       this.apiRequest(url)
         .done((response) => {
-          console.log("listTopics: получен ответ", response);
-          console.log("listTopics: список тем (response.data):", response.data);
-          console.log(
-            "listTopics: количество тем:",
-            response.data ? response.data.length : 0,
-          );
-
           // Выводим каждую тему отдельно для детального просмотра
           if (response.data && response.data.length > 0) {
-            console.log("listTopics: первая тема в списке:", response.data[0]);
           }
 
           if (!response.success) {
@@ -1490,8 +1413,6 @@
 
       this.apiRequest(url, "POST")
         .done((response) => {
-          console.log("generateTopics: получен ответ", response);
-
           if (response.success) {
             this.showNotice(
               response.message || "Темы сгенерированы",
@@ -1544,8 +1465,6 @@
 
       this.apiRequest(url, "POST")
         .done((response) => {
-          console.log("updateTopics: получен ответ", response);
-
           if (response.success) {
             // Проверяем статус ответа от n8n
             if (response.data && response.data.status === "empty") {
@@ -1611,13 +1530,6 @@
 
       this.apiRequest(`topics/${topicId}/generate-article`, "POST")
         .done((response) => {
-          console.log("generateArticleFromTopic: получен ответ", response);
-          console.log("generateArticleFromTopic: response.data", response.data);
-          console.log(
-            "generateArticleFromTopic: полный ответ от n8n:",
-            JSON.stringify(response, null, 2),
-          );
-
           if (response.success && response.data?.status === "started") {
             this.showNotice("Генерация статьи запущена в фоне", "success");
             // Деактивируем кнопку "Перейти к статье"
@@ -1647,8 +1559,6 @@
     },
 
     startArticleStatusPolling(topicId) {
-      console.log(`Запуск polling для темы ${topicId}`);
-
       // Очищаем предыдущий интервал, если был
       if (this.pollingIntervals && this.pollingIntervals[topicId]) {
         clearInterval(this.pollingIntervals[topicId]);
@@ -1671,12 +1581,8 @@
     },
 
     checkArticleStatus(topicId) {
-      console.log(`Проверка статуса генерации для темы ${topicId}`);
-
       this.apiRequest(`topics/${topicId}/check-article-status`, "GET")
         .done((response) => {
-          console.log("checkArticleStatus: ответ", response);
-
           if (!response.success || !response.data) {
             return;
           }
@@ -1691,7 +1597,6 @@
 
           if (status === "success" || status === "draft") {
             // Генерация завершена успешно
-            console.log("Генерация завершена успешно");
             this.stopArticleStatusPolling(topicId);
 
             const postLink = response.data.wp_post_link;
@@ -1709,7 +1614,6 @@
             }
           } else if (status === "error") {
             // Ошибка генерации
-            console.log("Ошибка генерации статьи");
             this.stopArticleStatusPolling(topicId);
 
             // Заменяем кнопку "Сгенерировать статью" на "Сгенерировать еще раз"
@@ -1724,17 +1628,14 @@
             this.showNotice("Ошибка при генерации статьи", "error");
           } else if (status === "start") {
             // Генерация еще в процессе
-            console.log("Генерация в процессе...");
           }
         })
         .fail((xhr) => {
-          console.error("Ошибка проверки статуса:", xhr);
         });
     },
 
     stopArticleStatusPolling(topicId) {
       if (this.pollingIntervals && this.pollingIntervals[topicId]) {
-        console.log(`Остановка polling для темы ${topicId}`);
         clearInterval(this.pollingIntervals[topicId]);
         delete this.pollingIntervals[topicId];
       }
@@ -1742,7 +1643,6 @@
 
     // Articles - загрузка run_ids
     loadRunIdsForArticles() {
-      console.log("=== loadRunIdsForArticles: загрузка run_ids ===");
       const $select = $("#cf-articles-run-id-select");
 
       this.apiRequest("senses/run-ids")
@@ -1780,13 +1680,8 @@
       if (params.length > 0) {
         url += "?" + params.join("&");
       }
-
-      console.log("loadArticles: запрос к", url);
-
       this.apiRequest(url)
         .done((response) => {
-          console.log("loadArticles: получен ответ", response);
-
           if (response.success && response.data) {
             this.renderArticlesList(response.data, $list);
           } else {
@@ -1794,7 +1689,6 @@
           }
         })
         .fail((xhr) => {
-          console.error("loadArticles: ошибка", xhr);
           $list.html(
             '<p class="cf-ui-notice error">Ошибка загрузки статей</p>',
           );
@@ -1855,14 +1749,11 @@
 
     // Prompts - загрузка списка промптов
     loadPrompts() {
-      console.log("=== loadPrompts: загрузка промптов ===");
       const $list = $("#cf-prompts-list");
       $list.html("<p>" + window.cfUIData.i18n.loading + "</p>");
 
       this.apiRequest("prompts")
         .done((response) => {
-          console.log("loadPrompts: получен ответ", response);
-
           if (response.success && response.data) {
             this.renderPromptsList(response.data, $list);
           } else {
@@ -1870,7 +1761,6 @@
           }
         })
         .fail((xhr) => {
-          console.error("loadPrompts: ошибка", xhr);
           $list.html(
             '<p class="cf-ui-notice error">Ошибка загрузки промптов</p>',
           );
@@ -2221,13 +2111,8 @@
       ) {
         return;
       }
-
-      console.log("Удаление промпта:", prompt.id);
-
       this.apiRequest(`prompts/${prompt.id}`, "DELETE")
         .done((response) => {
-          console.log("Ответ от сервера:", response);
-
           if (response.success) {
             this.showNotice(
               response.message || "Промпт успешно удалён",
@@ -2248,7 +2133,6 @@
           }
         })
         .fail((xhr) => {
-          console.error("Ошибка удаления:", xhr);
           const errorMsg =
             xhr.responseJSON?.message || "Ошибка при удалении промпта";
           this.showNotice(errorMsg, "error");
@@ -2301,9 +2185,6 @@
         max_words: maxWords,
         is_active: isActive,
       };
-
-      console.log(isNew ? "Создание промпта:" : "Обновление промпта:", data);
-
       const $saveBtn = $detail.find(".cf-save-prompt");
       const originalText = $saveBtn.text();
       $saveBtn
@@ -2316,8 +2197,6 @@
 
       this.apiRequest(endpoint, method, data)
         .done((response) => {
-          console.log("Ответ от сервера:", response);
-
           if (response.success) {
             this.showNotice(
               response.message ||
@@ -2336,7 +2215,6 @@
           }
         })
         .fail((xhr) => {
-          console.error("Ошибка сохранения:", xhr);
           const errorMsg =
             xhr.responseJSON?.message || "Ошибка при сохранении промпта";
           this.showNotice(errorMsg, "error");

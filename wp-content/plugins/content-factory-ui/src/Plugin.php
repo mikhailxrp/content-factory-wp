@@ -7,6 +7,7 @@ use ContentFactoryUI\Rest\Router;
 use ContentFactoryUI\Support\Assets;
 use ContentFactoryUI\Support\EditorAssets;
 use ContentFactoryUI\WP\PostStatusSync;
+use ContentFactoryUI\Logger\Logger;
 
 /**
  * Основной класс плагина - инициализация модулей
@@ -27,15 +28,15 @@ class Plugin {
    * Инициализация всех модулей плагина
    */
   public function init() {
-    error_log("[Plugin] ===== ПЛАГИН ИНИЦИАЛИЗИРУЕТСЯ =====");
+    Logger::debug('===== ПЛАГИН ИНИЦИАЛИЗИРУЕТСЯ =====');
     
     // REST API маршруты (всегда)
     add_action('rest_api_init', [Router::class, 'register']);
     
     // Синхронизация статуса постов с n8n
-    error_log("[Plugin] Вызываем PostStatusSync::register()");
+    Logger::debug('Вызываем PostStatusSync::register()');
     PostStatusSync::register();
-    error_log("[Plugin] PostStatusSync::register() выполнен");
+    Logger::debug('PostStatusSync::register() выполнен');
     
     // ВРЕМЕННО: Принудительная очистка кэша REST API при каждой загрузке
     add_action('init', function() {

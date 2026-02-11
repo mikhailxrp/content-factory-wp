@@ -5,33 +5,74 @@ namespace ContentFactoryUI\Logger;
 use ContentFactoryUI\N8n\Endpoints;
 
 /**
- * Логгер для получения логов генерации статей из n8n
+ * Логгер для получения логов генерации статей из n8n и отладки
  */
 class Logger {
+  /**
+   * Debug лог (только при WP_DEBUG)
+   */
+  public static function debug($message, $context = []) {
+    if (!defined('WP_DEBUG') || !WP_DEBUG) {
+      return;
+    }
+    
+    $prefix = '[CF Debug] ';
+    if (!empty($context)) {
+      $message .= ' | Context: ' . print_r($context, true);
+    }
+    error_log($prefix . $message);
+  }
+
+  /**
+   * Info лог (только при WP_DEBUG)
+   */
+  public static function info($message, $context = []) {
+    if (!defined('WP_DEBUG') || !WP_DEBUG) {
+      return;
+    }
+    
+    $prefix = '[CF Info] ';
+    if (!empty($context)) {
+      $message .= ' | Context: ' . print_r($context, true);
+    }
+    error_log($prefix . $message);
+  }
+
+  /**
+   * Error лог (всегда пишется)
+   */
+  public static function error($message, $context = []) {
+    $prefix = '[CF Error] ';
+    if (!empty($context)) {
+      $message .= ' | Context: ' . print_r($context, true);
+    }
+    error_log($prefix . $message);
+  }
+
   /**
    * Получить логи из n8n
    */
   public static function get_logs() {
-    error_log('[Logger] === НАЧАЛО get_logs() ===');
+    self::debug('=== НАЧАЛО get_logs() ===');
     
     $endpoint = Endpoints::get('get_logs');
-    error_log('[Logger] Endpoint: ' . ($endpoint ?? 'NULL'));
+    self::debug('Endpoint: ' . ($endpoint ?? 'NULL'));
     
     if (!$endpoint) {
-      error_log('[Logger] Endpoint не найден, возврат []');
+      self::debug('Endpoint не найден, возврат []');
       return [];
     }
 
     $base_url = \ContentFactoryUI\Settings\SettingsRepository::get('n8n_url');
-    error_log('[Logger] Base URL: ' . ($base_url ?? 'NULL'));
+    self::debug('Base URL: ' . ($base_url ?? 'NULL'));
     
     if (!$base_url) {
-      error_log('[Logger] Base URL не найден, возврат []');
+      self::debug('Base URL не найден, возврат []');
       return [];
     }
 
     $url = rtrim($base_url, '/') . '/' . ltrim($endpoint, '/');
-    error_log('[Logger] Итоговый URL: ' . $url);
+    self::debug('Итоговый URL: ' . $url);
     
     $response = wp_remote_get($url, [
       'timeout' => 30,
@@ -41,46 +82,46 @@ class Logger {
     ]);
 
     if (is_wp_error($response)) {
-      error_log('[Logger] Ошибка получения логов: ' . $response->get_error_message());
+      self::error('Ошибка получения логов: ' . $response->get_error_message());
       return [];
     }
 
     $status_code = wp_remote_retrieve_response_code($response);
     if ($status_code >= 400) {
-      error_log('[Logger] HTTP ошибка ' . $status_code);
+      self::error('HTTP ошибка ' . $status_code);
       return [];
     }
 
     $body = wp_remote_retrieve_body($response);
     $decoded = json_decode($body, true);
 
-    error_log('[Logger] Raw response from n8n: ' . substr($body, 0, 1000));
-    error_log('[Logger] Decoded data: ' . print_r($decoded, true));
+    self::debug('Raw response from n8n: ' . substr($body, 0, 1000));
+    self::debug('Decoded data', $decoded);
 
     if (!$decoded) {
-      error_log('[Logger] Не удалось декодировать JSON');
+      self::error('Не удалось декодировать JSON');
       return [];
     }
 
     // Формат: [ {...}, {...} ] — массив логов без обёртки
     if (is_array($decoded) && isset($decoded[0]) && is_array($decoded[0])) {
-      error_log('[Logger] Найден формат [ {...}, {...} ], количество: ' . count($decoded));
+      self::debug('Найден формат [ {...}, {...} ], количество: ' . count($decoded));
       return $decoded;
     }
 
     // n8n возвращает: [{"items": [...]}]
     if (isset($decoded[0]['items'])) {
-      error_log('[Logger] Найден формат [{"items": [...]}], количество: ' . count($decoded[0]['items']));
+      self::debug('Найден формат [{"items": [...]}], количество: ' . count($decoded[0]['items']));
       return $decoded[0]['items'];
     }
 
     // Альтернативный формат: {"data": [...]}
     if (isset($decoded['data'])) {
-      error_log('[Logger] Найден формат {"data": [...]}, количество: ' . count($decoded['data']));
+      self::debug('Найден формат {"data": [...]}, количество: ' . count($decoded['data']));
       return $decoded['data'];
     }
 
-    error_log('[Logger] Неизвестный формат данных от n8n');
+    self::error('Неизвестный формат данных от n8n');
     return [];
   }
 

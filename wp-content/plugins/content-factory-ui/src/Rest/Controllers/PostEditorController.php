@@ -5,6 +5,7 @@ namespace ContentFactoryUI\Rest\Controllers;
 use ContentFactoryUI\N8n\Client;
 use ContentFactoryUI\N8n\Endpoints;
 use ContentFactoryUI\WP\PostPublisher;
+use ContentFactoryUI\Logger\Logger;
 
 /**
  * REST контроллер для генерации статей из редактора
@@ -14,16 +15,16 @@ class PostEditorController {
    * Генерация статьи из редактора
    */
   public static function generate_article($request) {
-    error_log('=== [PostEditorController] НАЧАЛО generate_article ===');
+    Logger::debug('=== PostEditorController: generate_article ===');
     
     $post_id = $request->get_param('id');
     $data = $request->get_json_params();
     
-    error_log('[PostEditorController] Post ID: ' . $post_id);
-    error_log('[PostEditorController] Входящие данные: ' . print_r($data, true));
+    Logger::debug('Post ID: ' . $post_id);
+    Logger::debug('Входящие данные', $data);
 
     if (empty($post_id)) {
-      error_log('[PostEditorController] ОШИБКА: Post ID пустой');
+      Logger::error('Post ID пустой');
       return rest_ensure_response([
         'success' => false,
         'message' => __('Не указан ID поста', 'content-factory-ui')
@@ -78,11 +79,10 @@ class PostEditorController {
     $client = new Client();
     $endpoint = Endpoints::get('generate_article_from_editor');
     
-    error_log('[PostEditorController] Endpoint из Endpoints::get(): ' . ($endpoint ?? 'NULL'));
-    error_log('[PostEditorController] N8N URL из настроек: ' . \ContentFactoryUI\Settings\SettingsRepository::get('n8n_url'));
+    Logger::debug('Endpoint: ' . ($endpoint ?? 'NULL'));
     
     if (!$endpoint) {
-      error_log('[PostEditorController] ОШИБКА: Endpoint не настроен');
+      Logger::error('Endpoint generate_article_from_editor не настроен');
       return rest_ensure_response([
         'success' => false,
         'message' => __('Endpoint generate_article_from_editor не настроен', 'content-factory-ui')
@@ -111,21 +111,17 @@ class PostEditorController {
       'avoid' => sanitize_textarea_field($data['avoid'])
     ];
     
-    error_log('[PostEditorController] Генерация статьи для поста ID: ' . $post_id);
-    error_log('[PostEditorController] Endpoint: ' . $endpoint);
-    error_log('[PostEditorController] Payload для отправки: ' . json_encode($payload, JSON_UNESCAPED_UNICODE));
+    Logger::debug("Генерация статьи для поста ID: $post_id");
+    Logger::debug('Payload', $payload);
     
     // Отправляем данные в N8N
-    error_log('[PostEditorController] Отправка запроса в N8N...');
     $response = $client->post($endpoint, $payload);
-    
-    error_log('[PostEditorController] Тип ответа: ' . gettype($response));
-    error_log('[PostEditorController] Ответ от N8N: ' . print_r($response, true));
 
     if (is_wp_error($response)) {
-      error_log('[PostEditorController] ОШИБКА WP_Error: ' . $response->get_error_message());
-      error_log('[PostEditorController] Код ошибки: ' . $response->get_error_code());
-      error_log('[PostEditorController] Данные ошибки: ' . print_r($response->get_error_data(), true));
+      Logger::error('WP_Error: ' . $response->get_error_message(), [
+        'code' => $response->get_error_code(),
+        'data' => $response->get_error_data()
+      ]);
       
       return rest_ensure_response([
         'success' => false,
@@ -133,8 +129,7 @@ class PostEditorController {
       ]);
     }
 
-    error_log('[PostEditorController] Генерация запущена успешно');
-    error_log('[PostEditorController] Ответ (JSON): ' . json_encode($response, JSON_UNESCAPED_UNICODE));
+    Logger::debug('Генерация запущена успешно', $response);
 
     // Сохраняем информацию о запущенной генерации в post meta
     update_post_meta($post_id, '_cf_generation_status', 'started');
@@ -183,7 +178,7 @@ class PostEditorController {
       ]);
     }
 
-    error_log('[PostEditorController] Проверка статуса генерации для поста ID: ' . $post_id);
+    Logger::debug("Проверка статуса генерации для поста ID: $post_id");
     
     // Получаем job_id из meta, если есть
     $job_id = get_post_meta($post_id, '_cf_generation_job_id', true);
@@ -199,31 +194,27 @@ class PostEditorController {
     $response = $client->get($url);
 
     if (is_wp_error($response)) {
-      error_log('[PostEditorController] Ошибка проверки статуса: ' . $response->get_error_message());
+      Logger::error('Ошибка проверки статуса: ' . $response->get_error_message());
       return rest_ensure_response([
         'success' => false,
         'message' => $response->get_error_message()
       ]);
     }
 
-    error_log('[PostEditorController] Статус получен: ' . json_encode($response, JSON_UNESCAPED_UNICODE));
-    error_log('[PostEditorController] Тип response: ' . gettype($response));
-    error_log('[PostEditorController] Is array: ' . (is_array($response) ? 'YES' : 'NO'));
+    Logger::debug('Статус получен', $response);
     
     // Если N8N вернул массив, берём первый элемент
     if (is_array($response) && isset($response[0]) && is_array($response[0])) {
-      error_log('[PostEditorController] Response is array, taking first element');
+      Logger::debug('Response is array, taking first element');
       $response = $response[0];
-      error_log('[PostEditorController] Response after extraction: ' . json_encode($response, JSON_UNESCAPED_UNICODE));
     }
 
     // Если статья готова, обновляем пост
     if (isset($response['status']) && $response['status'] === 'completed') {
-      error_log('[PostEditorController] Status is COMPLETED');
+      Logger::debug('Status: COMPLETED');
       
       if (!empty($response['content'])) {
-        error_log('[PostEditorController] Content exists, length: ' . strlen($response['content']));
-        error_log('[PostEditorController] Title: ' . ($response['title'] ?? 'NO TITLE'));
+        Logger::debug('Content length: ' . strlen($response['content']));
         
         PostPublisher::update_post_content(
           $post_id,
@@ -235,21 +226,18 @@ class PostEditorController {
         update_post_meta($post_id, '_cf_generation_status', 'completed');
         update_post_meta($post_id, '_cf_generation_completed_at', current_time('mysql'));
         
-        error_log('[PostEditorController] Контент поста обновлен в БД');
+        Logger::debug('Контент поста обновлен в БД');
       } else {
-        error_log('[PostEditorController] WARNING: Content is empty!');
+        Logger::error('Content is empty!');
       }
     } elseif (isset($response['status']) && $response['status'] === 'error') {
-      error_log('[PostEditorController] Status is ERROR');
+      Logger::error('Status: ERROR');
       // Обновляем статус на ошибку
       update_post_meta($post_id, '_cf_generation_status', 'error');
       update_post_meta($post_id, '_cf_generation_error', $response['error_message'] ?? 'Unknown error');
     } else {
-      error_log('[PostEditorController] Status: ' . ($response['status'] ?? 'UNKNOWN'));
+      Logger::debug('Status: ' . ($response['status'] ?? 'UNKNOWN'));
     }
-
-    error_log('[PostEditorController] Возвращаем ответ в JavaScript');
-    error_log('[PostEditorController] Response to JS: ' . json_encode($response, JSON_UNESCAPED_UNICODE));
 
     return rest_ensure_response([
       'success' => true,
