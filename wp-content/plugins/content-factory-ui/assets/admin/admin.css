@@ -707,6 +707,11 @@
   color: #fff;
 }
 
+/* Admin menu: hide Telegram submenu item visually (keep functionality) */
+#adminmenu a[href*="page=content-factory-telegram"] {
+  display: none !important;
+}
+
 /* Responsive */
 @media (max-width: 782px) {
   .cf-ui-wrap {
