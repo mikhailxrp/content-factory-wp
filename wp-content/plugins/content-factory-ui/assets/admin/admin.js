@@ -631,7 +631,7 @@
         let html = `
           <div class="cf-ui-detail-header">
             <h2>${this.escapeHtml(item.service)} — ${this.escapeHtml(item.audience)}</h2>
-            <button type="button" class="button" onclick="$('#cf-sense-detail').hide()">Закрыть</button>
+            <button type="button" class="button cf-sense-detail-close">Закрыть</button>
           </div>
           <div class="cf-ui-detail-content">
             <p><strong>ID смысла:</strong> ${this.escapeHtml(item.meaning_id)}</p>
@@ -653,6 +653,14 @@
         `;
 
         $container.html(html);
+
+        // Обработчик закрытия детали смысла без использования глобального $
+        $container
+          .off("click.cfSenseClose")
+          .on("click.cfSenseClose", ".cf-sense-detail-close", () => {
+            $("#cf-sense-detail").hide();
+          });
+
         return;
       }
 
@@ -673,7 +681,7 @@
         let html = `
           <div class="cf-ui-detail-header">
             <h2>${this.escapeHtml(title)}</h2>
-            <button type="button" class="button" onclick="$('#cf-topic-detail').hide()">Закрыть</button>
+            <button type="button" class="button cf-topic-detail-close">Закрыть</button>
           </div>
           <div class="cf-ui-detail-content">
             <p><strong>ID темы:</strong> ${item.topic_candidate_id}</p>
@@ -694,6 +702,14 @@
         `;
 
         $container.html(html);
+
+        // Обработчик закрытия детали темы без использования глобального $
+        $container
+          .off("click.cfTopicClose")
+          .on("click.cfTopicClose", ".cf-topic-detail-close", () => {
+            $("#cf-topic-detail").hide();
+          });
+
         return;
       }
 
