@@ -1728,12 +1728,25 @@
 
     // Articles - рендер списка
     renderArticlesList(articles, $container) {
-      if (!articles || articles.length === 0) {
-        $container.html("<p>Список статей пуст</p>");
+      // Нормализуем массив статей и отфильтровываем "пустые" элементы,
+      // которые приходят как [], null, {} и т.п.
+      const validArticles = Array.isArray(articles)
+        ? articles.filter(
+            (article) =>
+              article &&
+              typeof article === "object" &&
+              !Array.isArray(article) &&
+              Object.keys(article).length > 0,
+          )
+        : [];
+
+      // Если после фильтрации ничего не осталось — считаем, что по фильтрам нет статей
+      if (validArticles.length === 0) {
+        $container.html("<p>Статей с данными фильтрами не найдено</p>");
         return;
       }
 
-      const html = articles
+      const html = validArticles
         .map((article) => {
           const title = article.topic_title || "Без названия";
           const status = article.status || "draft";
