@@ -100,10 +100,11 @@ class TopicsController {
   }
 
   /**
-   * Обновление тем по run_id
+   * Обновление тем по run_id (и опционально по meaning_id)
    */
   public static function update($request) {
     $run_id = $request->get_param('run_id');
+    $meaning_id = $request->get_param('meaning_id');
 
     if (empty($run_id)) {
       return rest_ensure_response([
@@ -116,8 +117,17 @@ class TopicsController {
     $client->set_timeout(120);
     
     $endpoint = Endpoints::get('update_topics');
-    
-    $response = $client->post($endpoint . '?run_id=' . urlencode($run_id), [
+
+    // Собираем query-параметры по аналогии с generate()
+    $query = [
+      'run_id' => $run_id,
+    ];
+
+    if (!empty($meaning_id)) {
+      $query['meaning_id'] = $meaning_id;
+    }
+
+    $response = $client->post($endpoint . '?' . http_build_query($query), [
       'mode' => 'regenerate'
     ]);
 

@@ -1298,6 +1298,7 @@
 
     updateTopics() {
       const runId = $("#cf-topics-run-id-select").val();
+      const meaningId = $("#cf-topics-sense-select").val();
 
       if (!runId) {
         this.showNotice("Выберите run_id", "error");
@@ -1314,10 +1315,12 @@
       const originalText = $btn.text();
       $btn.prop("disabled", true).text("Обновление...");
 
-      this.apiRequest(
-        `topics/update?run_id=${encodeURIComponent(runId)}`,
-        "POST",
-      )
+      let url = `topics/update?run_id=${encodeURIComponent(runId)}`;
+      if (meaningId) {
+        url += `&meaning_id=${encodeURIComponent(meaningId)}`;
+      }
+
+      this.apiRequest(url, "POST")
         .done((response) => {
           console.log("updateTopics: получен ответ", response);
 
