@@ -67,7 +67,7 @@
       $("#cf-refresh-articles").on("click", this.loadArticles.bind(this));
 
       // Logs
-      $("#cf-logs-search").on("input", this.filterLogs.bind(this));
+      $("#cf-logs-date").on("change", () => this.filterLogs());
       $("#cf-refresh-logs").on("click", this.loadLogs.bind(this));
 
       // Telegram
@@ -1041,7 +1041,7 @@
             this.allLogs = response.data || [];
             console.log("[LOGS] Всего записей:", this.allLogs.length);
             console.log("[LOGS] Данные:", this.allLogs);
-            this.filterLogs();
+            this.initLogsDateFilter();
           } else {
             console.error("[LOGS] Ошибка загрузки логов");
           }
@@ -1057,14 +1057,52 @@
         return;
       }
 
-      const searchText = $("#cf-logs-search").val().toLowerCase();
-      const filtered = searchText
-        ? this.allLogs.filter(
-            (log) => log.title && log.title.toLowerCase().includes(searchText),
-          )
+      const selectedDate = $("#cf-logs-date").val();
+      const filtered = selectedDate
+        ? this.allLogs.filter((log) => {
+            const createdAt = (log.created_at || log.timestamp || "").slice(
+              0,
+              10,
+            );
+            return createdAt === selectedDate;
+          })
         : this.allLogs;
 
       this.renderLogs(filtered);
+    },
+
+    initLogsDateFilter() {
+      const $dateInput = $("#cf-logs-date");
+
+      if (!$dateInput.length) {
+        this.renderLogs(this.allLogs || []);
+        return;
+      }
+
+      const datesSet = new Set(
+        (this.allLogs || [])
+          .map((log) => (log.created_at || log.timestamp || "").slice(0, 10))
+          .filter((d) => d),
+      );
+
+      const dates = Array.from(datesSet).sort();
+      this.logDates = dates;
+
+      if (dates.length === 0) {
+        $dateInput.val("");
+        this.renderLogs([]);
+        return;
+      }
+
+      $dateInput.attr("min", dates[0]);
+      $dateInput.attr("max", dates[dates.length - 1]);
+
+      // Если дата ещё не выбрана, ставим последнюю доступную (самая свежая)
+      if (!$dateInput.val()) {
+        $dateInput.val(dates[dates.length - 1]);
+      }
+
+      this.filterLogs();
     },
 
     renderLogs(logs) {
