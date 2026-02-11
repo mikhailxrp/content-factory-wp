@@ -30,7 +30,7 @@ class Endpoints {
     'delete_prompt' => '/webhook/prompts/delete',
     'generate_article_from_editor' => '/webhook/generate-article-from-editor',
     'check_editor_article_status' => '/webhook/check-editor-article-status',
-    'get_logs' => '/webhook-test/logs'
+    'get_logs' => '/webhook/logs'
   ];
 
   /**
