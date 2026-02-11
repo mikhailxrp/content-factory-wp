@@ -99,6 +99,26 @@ class Router {
       ]
     ]);
 
+    register_rest_route(self::NAMESPACE, '/senses/update-one', [
+      'methods' => 'POST',
+      'callback' => [SensesController::class, 'update_one'],
+      'permission_callback' => [SensesController::class, 'check_permission'],
+      'args' => [
+        'run_id' => [
+          'required' => true,
+          'type' => 'string',
+          'description' => 'ID запуска генерации',
+          'sanitize_callback' => 'sanitize_text_field'
+        ],
+        'meaning_id' => [
+          'required' => true,
+          'type' => 'string',
+          'description' => 'ID смысла (meaning_id)',
+          'sanitize_callback' => 'sanitize_text_field'
+        ]
+      ]
+    ]);
+
     register_rest_route(self::NAMESPACE, '/senses/(?P<id>[\d]+)/generate-topics', [
       'methods' => 'POST',
       'callback' => [SensesController::class, 'generate_topics'],

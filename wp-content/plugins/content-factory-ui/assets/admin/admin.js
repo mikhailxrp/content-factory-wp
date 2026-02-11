@@ -630,7 +630,15 @@
 
         let html = `
           <div class="cf-ui-detail-header">
-            <h2>${this.escapeHtml(item.service)} — ${this.escapeHtml(item.audience)}</h2>
+            <h2>
+              <span class="cf-sense-field cf-sense-editable" data-field="service" contenteditable="false">
+                ${this.escapeHtml(item.service)}
+              </span>
+               — 
+              <span class="cf-sense-field cf-sense-editable" data-field="audience" contenteditable="false">
+                ${this.escapeHtml(item.audience)}
+              </span>
+            </h2>
             <button type="button" class="button cf-sense-detail-close">Закрыть</button>
           </div>
           <div class="cf-ui-detail-content">
@@ -638,17 +646,37 @@
             <p><strong>Run ID:</strong> ${item.run_id}</p>
             <hr>
             <h3>Проблема</h3>
-            <p>${this.escapeHtml(item.problem)}</p>
+            <p class="cf-sense-field cf-sense-editable" data-field="problem" contenteditable="false">
+              ${this.escapeHtml(item.problem)}
+            </p>
             <h3>Риск</h3>
-            <p>${this.escapeHtml(item.risk)}</p>
+            <p class="cf-sense-field cf-sense-editable" data-field="risk" contenteditable="false">
+              ${this.escapeHtml(item.risk)}
+            </p>
             <h3>Подход</h3>
-            <p>${this.escapeHtml(item.approach)}</p>
+            <p class="cf-sense-field cf-sense-editable" data-field="approach" contenteditable="false">
+              ${this.escapeHtml(item.approach)}
+            </p>
             <h3>Результат</h3>
-            <p>${this.escapeHtml(item.result)}</p>
+            <p class="cf-sense-field cf-sense-editable" data-field="result" contenteditable="false">
+              ${this.escapeHtml(item.result)}
+            </p>
             <h3>Доказательство</h3>
-            <p>${this.escapeHtml(item.proof_hint)}</p>
-            ${keywords ? `<p><strong>Ключевые слова:</strong> ${this.escapeHtml(keywords)}</p>` : ""}
+            <p class="cf-sense-field cf-sense-editable" data-field="proof_hint" contenteditable="false">
+              ${this.escapeHtml(item.proof_hint)}
+            </p>
+            ${
+              keywords
+                ? `<p><strong>Ключевые слова:</strong> <span class="cf-sense-field cf-sense-editable" data-field="keywords" contenteditable="false">${this.escapeHtml(
+                    keywords,
+                  )}</span></p>`
+                : `<p><strong>Ключевые слова:</strong> <span class="cf-sense-field cf-sense-editable" data-field="keywords" contenteditable="false"></span></p>`
+            }
             <p><small>Создано: ${item.created_at}</small></p>
+            <div class="cf-ui-detail-actions">
+              <button type="button" class="button cf-edit-sense-btn">Редактировать смысл</button>
+              <button type="button" class="button button-primary cf-save-sense-btn" disabled>Сохранить</button>
+            </div>
           </div>
         `;
 
@@ -660,6 +688,69 @@
           .on("click.cfSenseClose", ".cf-sense-detail-close", () => {
             $("#cf-sense-detail").hide();
           });
+
+        // Редактирование смысла
+        const $detail = $container.find(".cf-ui-detail-content");
+        const $fields = $container.find(".cf-sense-editable");
+        const $editBtn = $container.find(".cf-edit-sense-btn");
+        const $saveBtn = $container.find(".cf-save-sense-btn");
+
+        const originalValues = {};
+        $fields.each(function () {
+          const field = $(this).data("field");
+          if (!field) return;
+          originalValues[field] = $(this).text().trim();
+        });
+
+        $editBtn.on("click", () => {
+          $fields.attr("contenteditable", "true").addClass("cf-sense-editing");
+          $saveBtn.prop("disabled", true);
+        });
+
+        $fields.on("input", () => {
+          let changed = false;
+          $fields.each(function () {
+            const field = $(this).data("field");
+            if (!field) return;
+            const current = $(this).text().trim();
+            if (current !== (originalValues[field] || "")) {
+              changed = true;
+            }
+          });
+          $saveBtn.prop("disabled", !changed);
+        });
+
+        $saveBtn.on("click", () => {
+          const runId = $("#cf-run-id-select").val();
+          const meaningId = item.meaning_id;
+
+          const updated = {};
+          $fields.each(function () {
+            const field = $(this).data("field");
+            if (!field) return;
+            const raw = $(this).text().trim();
+            updated[field] =
+              field === "keywords" ? raw.split(/\s*,\s*/).filter(Boolean) : raw;
+          });
+
+          // Гарантируем наличие meaning_id в данных
+          updated.meaning_id = meaningId;
+
+          cfUI.saveSenseChanges(runId, meaningId, updated, {
+            onSuccess: () => {
+              Object.keys(updated).forEach((key) => {
+                if (key === "meaning_id") return;
+                originalValues[key] = Array.isArray(updated[key])
+                  ? updated[key].join(", ")
+                  : updated[key];
+              });
+              $fields
+                .attr("contenteditable", "false")
+                .removeClass("cf-sense-editing");
+              $saveBtn.prop("disabled", true);
+            },
+          });
+        });
 
         return;
       }
@@ -1185,6 +1276,46 @@
         .fail((xhr) => {
           const errorMsg =
             xhr.responseJSON?.message || "Ошибка обновления темы";
+          this.showNotice(errorMsg, "error");
+        })
+        .always(() => {
+          $saveBtn.prop("disabled", false).text(originalText);
+        });
+    },
+
+    saveSenseChanges(runId, meaningId, senseData, { onSuccess } = {}) {
+      if (!runId || !meaningId || !senseData) {
+        this.showNotice("Недостаточно данных для сохранения смысла", "error");
+        return;
+      }
+
+      const $saveBtn = $(".cf-save-sense-btn");
+      const originalText = $saveBtn.text();
+      $saveBtn.prop("disabled", true).text("Сохранение...");
+
+      const payload = {
+        run_id: runId,
+        meaning_id: meaningId,
+        sense: senseData,
+      };
+
+      this.apiRequest("senses/update-one", "POST", payload)
+        .done((response) => {
+          if (response.success) {
+            this.showNotice(response.message || "Смысл обновлён", "success");
+            if (typeof onSuccess === "function") {
+              onSuccess(response);
+            }
+          } else {
+            this.showNotice(
+              response.message || "Ошибка обновления смысла",
+              "error",
+            );
+          }
+        })
+        .fail((xhr) => {
+          const errorMsg =
+            xhr.responseJSON?.message || "Ошибка обновления смысла";
           this.showNotice(errorMsg, "error");
         })
         .always(() => {

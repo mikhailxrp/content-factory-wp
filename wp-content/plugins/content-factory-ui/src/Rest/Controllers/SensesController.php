@@ -199,6 +199,60 @@ class SensesController {
   }
 
   /**
+   * Обновить один смысл по run_id и meaning_id
+   */
+  public static function update_one($request) {
+    $run_id = $request->get_param('run_id');
+    $meaning_id = $request->get_param('meaning_id');
+    $data = $request->get_json_params();
+
+    if (empty($run_id) || empty($meaning_id)) {
+      return rest_ensure_response([
+        'success' => false,
+        'message' => __('Не указан run_id или meaning_id', 'content-factory-ui')
+      ]);
+    }
+
+    $sense = isset($data['sense']) && is_array($data['sense']) ? $data['sense'] : [];
+
+    if (empty($sense)) {
+      return rest_ensure_response([
+        'success' => false,
+        'message' => __('Не переданы данные смысла', 'content-factory-ui')
+      ]);
+    }
+
+    // Гарантируем наличие meaning_id внутри данных смысла
+    if (empty($sense['meaning_id'])) {
+      $sense['meaning_id'] = $meaning_id;
+    }
+
+    $client = new Client();
+    $endpoint = Endpoints::get('update_sense') ?? '/webhook/senses/update-one';
+
+    $payload = [
+      'run_id' => $run_id,
+      'meaning_id' => $meaning_id,
+      'sense' => $sense
+    ];
+
+    $response = $client->post($endpoint, $payload);
+
+    if (is_wp_error($response)) {
+      return rest_ensure_response([
+        'success' => false,
+        'message' => $response->get_error_message()
+      ]);
+    }
+
+    return rest_ensure_response([
+      'success' => true,
+      'message' => __('Смысл обновлён', 'content-factory-ui'),
+      'data' => $response
+    ]);
+  }
+
+  /**
    * Проверка прав доступа
    */
   public static function check_permission() {
