@@ -2,10 +2,13 @@
 
 namespace ContentFactoryUI\N8n;
 
+use ContentFactoryUI\Settings\SettingsRepository;
+
 /**
  * Маппинг действий на endpoints n8n
  */
-class Endpoints {
+class Endpoints
+{
   private static $endpoints = [
     'generate_senses' => '/webhook/generate-senses',
     'generate_topics' => '/webhook/generate-topics',
@@ -36,10 +39,11 @@ class Endpoints {
   /**
    * Получить endpoint по действию
    */
-  public static function get($action) {
+  public static function get($action)
+  {
     // Сначала проверяем кастомные endpoints из настроек
-    $custom_endpoints = \ContentFactoryUI\Settings\SettingsRepository::get('endpoints', []);
-    
+    $custom_endpoints = SettingsRepository::get('endpoints', []);
+
     if (isset($custom_endpoints[$action])) {
       return $custom_endpoints[$action];
     }
@@ -51,17 +55,19 @@ class Endpoints {
   /**
    * Получить все endpoints
    */
-  public static function get_all() {
-    $custom = \ContentFactoryUI\Settings\SettingsRepository::get('endpoints', []);
+  public static function get_all()
+  {
+    $custom = SettingsRepository::get('endpoints', []);
     return array_merge(self::$endpoints, $custom);
   }
 
   /**
    * Обновить endpoint
    */
-  public static function set($action, $endpoint) {
-    $endpoints = \ContentFactoryUI\Settings\SettingsRepository::get('endpoints', []);
+  public static function set($action, $endpoint)
+  {
+    $endpoints = SettingsRepository::get('endpoints', []);
     $endpoints[$action] = $endpoint;
-    return \ContentFactoryUI\Settings\SettingsRepository::set('endpoints', $endpoints);
+    return SettingsRepository::set('endpoints', $endpoints);
   }
 }

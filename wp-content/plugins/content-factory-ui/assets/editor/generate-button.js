@@ -202,8 +202,6 @@
           path: `/content-factory/v1/posts/${postId}/check-article-status`,
           method: "GET",
         });
-        if (response.data) {
-        }
 
         if (response.success && response.data) {
           const status = response.data.status;

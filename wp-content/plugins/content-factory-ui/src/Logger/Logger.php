@@ -7,15 +7,17 @@ use ContentFactoryUI\N8n\Endpoints;
 /**
  * Логгер для получения логов генерации статей из n8n и отладки
  */
-class Logger {
+class Logger
+{
   /**
    * Debug лог (только при WP_DEBUG)
    */
-  public static function debug($message, $context = []) {
+  public static function debug($message, $context = [])
+  {
     if (!defined('WP_DEBUG') || !WP_DEBUG) {
       return;
     }
-    
+
     $prefix = '[CF Debug] ';
     if (!empty($context)) {
       $message .= ' | Context: ' . print_r($context, true);
@@ -26,11 +28,12 @@ class Logger {
   /**
    * Info лог (только при WP_DEBUG)
    */
-  public static function info($message, $context = []) {
+  public static function info($message, $context = [])
+  {
     if (!defined('WP_DEBUG') || !WP_DEBUG) {
       return;
     }
-    
+
     $prefix = '[CF Info] ';
     if (!empty($context)) {
       $message .= ' | Context: ' . print_r($context, true);
@@ -41,7 +44,8 @@ class Logger {
   /**
    * Error лог (всегда пишется)
    */
-  public static function error($message, $context = []) {
+  public static function error($message, $context = [])
+  {
     $prefix = '[CF Error] ';
     if (!empty($context)) {
       $message .= ' | Context: ' . print_r($context, true);
@@ -52,12 +56,13 @@ class Logger {
   /**
    * Получить логи из n8n
    */
-  public static function get_logs() {
+  public static function get_logs()
+  {
     self::debug('=== НАЧАЛО get_logs() ===');
-    
+
     $endpoint = Endpoints::get('get_logs');
     self::debug('Endpoint: ' . ($endpoint ?? 'NULL'));
-    
+
     if (!$endpoint) {
       self::debug('Endpoint не найден, возврат []');
       return [];
@@ -65,7 +70,7 @@ class Logger {
 
     $base_url = \ContentFactoryUI\Settings\SettingsRepository::get('n8n_url');
     self::debug('Base URL: ' . ($base_url ?? 'NULL'));
-    
+
     if (!$base_url) {
       self::debug('Base URL не найден, возврат []');
       return [];
@@ -73,7 +78,7 @@ class Logger {
 
     $url = rtrim($base_url, '/') . '/' . ltrim($endpoint, '/');
     self::debug('Итоговый URL: ' . $url);
-    
+
     $response = wp_remote_get($url, [
       'timeout' => 30,
       'headers' => [
@@ -126,22 +131,48 @@ class Logger {
   }
 
   /**
-   * Устаревшие методы для обратной совместимости
-   * TODO: удалить после рефакторинга Client.php
+   * Логирование HTTP запроса
    */
-  public static function log_request($method, $url, $data = null) {
-    // Больше не логируем
+  public static function log_request($method, $url, $data = null)
+  {
+    if (!defined('WP_DEBUG') || !WP_DEBUG) {
+      return;
+    }
+
+    $message = "HTTP Request: $method $url";
+    if ($data) {
+      $message .= ' | Data: ' . wp_json_encode($data);
+    }
+    self::debug($message);
   }
 
-  public static function log_response($method, $url, $status, $data = null) {
-    // Больше не логируем
+  /**
+   * Логирование HTTP ответа
+   */
+  public static function log_response($method, $url, $status, $data = null)
+  {
+    if (!defined('WP_DEBUG') || !WP_DEBUG) {
+      return;
+    }
+
+    $message = "HTTP Response: $method $url | Status: $status";
+    if ($data) {
+      $message .= ' | Data: ' . wp_json_encode($data);
+    }
+    self::debug($message);
   }
 
-  public static function log_error($method, $url, $error) {
-    // Больше не логируем
+  /**
+   * Логирование HTTP ошибки
+   */
+  public static function log_error($method, $url, $error)
+  {
+    $message = "HTTP Error: $method $url | Error: $error";
+    self::error($message);
   }
 
-  public static function clear_logs() {
+  public static function clear_logs()
+  {
     // TODO: реализовать очистку логов на стороне n8n если понадобится
     return true;
   }

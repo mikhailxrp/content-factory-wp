@@ -16,14 +16,15 @@ use ContentFactoryUI\Logger\Logger;
 /**
  * Регистрация REST API маршрутов
  */
-class Router {
+class Router
+{
   private const NAMESPACE = 'content-factory/v1';
 
   /**
    * Регистрация всех маршрутов
    */
-  public static function register() {
-    Logger::debug('=== Регистрация REST API роутов ===');
+  public static function register()
+  {
     // Settings
     register_rest_route(self::NAMESPACE, '/settings', [
       [
@@ -71,7 +72,7 @@ class Router {
       'permission_callback' => [SensesController::class, 'check_permission']
     ]);
 
-    $result = register_rest_route(self::NAMESPACE, '/senses/list', [
+    register_rest_route(self::NAMESPACE, '/senses/list', [
       'methods' => 'GET',
       'callback' => [SensesController::class, 'list'],
       'permission_callback' => [SensesController::class, 'check_permission'],
@@ -84,7 +85,6 @@ class Router {
         ]
       ]
     ]);
-    Logger::debug('Регистрация роута /senses/list: ' . ($result ? 'SUCCESS' : 'FAILED'));
 
     register_rest_route(self::NAMESPACE, '/senses/(?P<id>[a-zA-Z0-9_-]+)', [
       'methods' => 'GET',

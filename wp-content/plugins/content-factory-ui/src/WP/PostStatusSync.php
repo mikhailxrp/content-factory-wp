@@ -9,28 +9,28 @@ use ContentFactoryUI\Logger\Logger;
 /**
  * Синхронизация статуса постов с внешней БД через n8n
  */
-class PostStatusSync {
+class PostStatusSync
+{
   /**
    * Регистрация хуков
    */
-  public static function register() {
-    Logger::debug('===== PostStatusSync: register() вызван =====');
+  public static function register()
+  {
     add_action('transition_post_status', [self::class, 'on_post_status_change'], 10, 3);
     add_action('init', [self::class, 'register_post_meta']);
-    Logger::debug('Хуки PostStatusSync зарегистрированы');
   }
 
   /**
    * Регистрация post meta для REST API
    */
-  public static function register_post_meta() {
-    Logger::debug('Регистрируем post_meta topic_candidate_id');
+  public static function register_post_meta()
+  {
     register_post_meta('post', 'topic_candidate_id', [
       'type' => 'string',
       'description' => 'ID темы из Content Factory',
       'single' => true,
       'show_in_rest' => true,
-      'auth_callback' => function() {
+      'auth_callback' => function () {
         return current_user_can('edit_posts');
       }
     ]);
@@ -39,59 +39,27 @@ class PostStatusSync {
   /**
    * Обработчик изменения статуса поста
    */
-  public static function on_post_status_change($new_status, $old_status, $post) {
-    // Логируем в опцию WP для отладки
-    $debug_log = get_option('cf_post_status_debug', []);
-    $debug_log[] = [
-      'time' => current_time('mysql'),
-      'post_id' => $post->ID,
-      'old_status' => $old_status,
-      'new_status' => $new_status,
-      'post_type' => $post->post_type
-    ];
-    // Храним только последние 20 записей
-    $debug_log = array_slice($debug_log, -20);
-    update_option('cf_post_status_debug', $debug_log);
-    
-    Logger::debug("Hook сработал! post_id={$post->ID}, old={$old_status}, new={$new_status}");
-    
+  public static function on_post_status_change($new_status, $old_status, $post)
+  {
     // Только для постов типа 'post'
     if ($post->post_type !== 'post') {
-      Logger::debug('Пропускаем - не post type');
       return;
     }
 
     // Проверяем, что это статья из нашей системы (есть topic_candidate_id)
     $topicId = get_post_meta($post->ID, 'topic_candidate_id', true);
-    
-    // Логируем в опцию для отладки
-    $debug_log = get_option('cf_post_status_debug', []);
-    $debug_log[count($debug_log) - 1]['topic_id'] = $topicId ?: 'НЕТ';
-    $debug_log[count($debug_log) - 1]['all_meta'] = array_keys(get_post_meta($post->ID));
-    update_option('cf_post_status_debug', $debug_log);
-    
-    Logger::debug('topic_candidate_id из meta: ' . ($topicId ?: 'отсутствует'));
-    
+
     if (empty($topicId)) {
-      Logger::debug('Пропускаем - нет topic_candidate_id в post_meta');
-      
-      // ВРЕМЕННО: отправляем запрос даже без topic_id для теста
-      if ($new_status === 'publish' && $old_status !== 'publish') {
-        Logger::debug('ТЕСТ: Отправляем без topic_id');
-        self::notify_published($post->ID, 'TEST_' . $post->ID);
-      }
       return;
     }
 
     // Отслеживаем только переход в статус 'publish'
     if ($new_status === 'publish' && $old_status !== 'publish') {
-      Logger::debug('Переход в publish - отправляем уведомление');
       self::notify_published($post->ID, $topicId);
     }
 
     // Опционально: отслеживаем переход обратно в draft
     if ($new_status === 'draft' && $old_status === 'publish') {
-      Logger::debug('Переход в draft - отправляем уведомление');
       self::notify_unpublished($post->ID, $topicId);
     }
   }
@@ -99,9 +67,8 @@ class PostStatusSync {
   /**
    * Уведомить n8n о публикации статьи
    */
-  private static function notify_published($post_id, $topic_id) {
-    Logger::debug("Статья опубликована: post_id={$post_id}, topic_id={$topic_id}");
-
+  private static function notify_published($post_id, $topic_id)
+  {
     $client = new Client();
     $endpoint = Endpoints::get('update_article_status');
 
@@ -121,22 +88,19 @@ class PostStatusSync {
 
     // Добавляем параметры в URL
     $url = $endpoint . '?' . http_build_query($params);
-    
-    Logger::debug("Отправка запроса: {$url}");
 
     $response = $client->post($url);
 
     if (is_wp_error($response)) {
-      Logger::error('Ошибка отправки уведомления: ' . $response->get_error_message());
-    } else {
-      Logger::debug('Уведомление отправлено успешно');
+      Logger::error('Ошибка отправки уведомления о публикации: ' . $response->get_error_message());
     }
   }
 
   /**
    * Уведомить n8n о снятии статьи с публикации
    */
-  private static function notify_unpublished($post_id, $topic_id) {
+  private static function notify_unpublished($post_id, $topic_id)
+  {
     Logger::debug("Статья снята с публикации: post_id={$post_id}, topic_id={$topic_id}");
 
     $client = new Client();

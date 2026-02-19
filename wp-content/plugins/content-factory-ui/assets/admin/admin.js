@@ -990,9 +990,11 @@
             this.allLogs = response.data || [];
             this.initLogsDateFilter();
           } else {
+            this.showNotice("Ошибка загрузки логов", "error");
           }
         })
-        .fail((error) => {
+        .fail(() => {
+          this.showNotice("Ошибка загрузки логов", "error");
         });
     },
 
@@ -1349,10 +1351,6 @@
 
       this.apiRequest(url)
         .done((response) => {
-          // Выводим каждую тему отдельно для детального просмотра
-          if (response.data && response.data.length > 0) {
-          }
-
           if (!response.success) {
             this.showNotice(response.message || "Ошибка загрузки тем", "error");
           } else {
@@ -1630,7 +1628,8 @@
             // Генерация еще в процессе
           }
         })
-        .fail((xhr) => {
+        .fail(() => {
+          // Ошибка проверки статуса - продолжаем polling
         });
     },
 

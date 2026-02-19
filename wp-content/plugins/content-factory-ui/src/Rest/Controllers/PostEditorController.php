@@ -10,16 +10,18 @@ use ContentFactoryUI\Logger\Logger;
 /**
  * REST контроллер для генерации статей из редактора
  */
-class PostEditorController {
+class PostEditorController
+{
   /**
    * Генерация статьи из редактора
    */
-  public static function generate_article($request) {
+  public static function generate_article($request)
+  {
     Logger::debug('=== PostEditorController: generate_article ===');
-    
+
     $post_id = $request->get_param('id');
     $data = $request->get_json_params();
-    
+
     Logger::debug('Post ID: ' . $post_id);
     Logger::debug('Входящие данные', $data);
 
@@ -50,25 +52,25 @@ class PostEditorController {
         ]);
       }
     }
-    
+
     // Валидация диапазона объёма
     $volume_from = intval($data['volume_from']);
     $volume_to = intval($data['volume_to']);
-    
+
     if ($volume_from < 500 || $volume_from > 3000) {
       return rest_ensure_response([
         'success' => false,
         'message' => __('Объём "от" должен быть от 500 до 3000', 'content-factory-ui')
       ]);
     }
-    
+
     if ($volume_to < 500 || $volume_to > 3000) {
       return rest_ensure_response([
         'success' => false,
         'message' => __('Объём "до" должен быть от 500 до 3000', 'content-factory-ui')
       ]);
     }
-    
+
     if ($volume_from > $volume_to) {
       return rest_ensure_response([
         'success' => false,
@@ -78,9 +80,9 @@ class PostEditorController {
 
     $client = new Client();
     $endpoint = Endpoints::get('generate_article_from_editor');
-    
+
     Logger::debug('Endpoint: ' . ($endpoint ?? 'NULL'));
-    
+
     if (!$endpoint) {
       Logger::error('Endpoint generate_article_from_editor не настроен');
       return rest_ensure_response([
@@ -94,7 +96,7 @@ class PostEditorController {
     if (!empty($data['keywords']) && is_array($data['keywords'])) {
       $keywords = array_map('sanitize_text_field', $data['keywords']);
     }
-    
+
     $payload = [
       'post_id' => $post_id,
       'request' => sanitize_textarea_field($data['request']),
@@ -110,10 +112,10 @@ class PostEditorController {
       'additional_elements' => sanitize_textarea_field($data['additional_elements']),
       'avoid' => sanitize_textarea_field($data['avoid'])
     ];
-    
+
     Logger::debug("Генерация статьи для поста ID: $post_id");
     Logger::debug('Payload', $payload);
-    
+
     // Отправляем данные в N8N
     $response = $client->post($endpoint, $payload);
 
@@ -122,7 +124,7 @@ class PostEditorController {
         'code' => $response->get_error_code(),
         'data' => $response->get_error_data()
       ]);
-      
+
       return rest_ensure_response([
         'success' => false,
         'message' => $response->get_error_message()
@@ -134,7 +136,7 @@ class PostEditorController {
     // Сохраняем информацию о запущенной генерации в post meta
     update_post_meta($post_id, '_cf_generation_status', 'started');
     update_post_meta($post_id, '_cf_generation_started_at', current_time('mysql'));
-    
+
     if (isset($response['job_id'])) {
       update_post_meta($post_id, '_cf_generation_job_id', $response['job_id']);
     }
@@ -149,7 +151,8 @@ class PostEditorController {
   /**
    * Проверка статуса генерации статьи
    */
-  public static function check_status($request) {
+  public static function check_status($request)
+  {
     $post_id = $request->get_param('id');
 
     if (empty($post_id)) {
@@ -170,7 +173,7 @@ class PostEditorController {
 
     $client = new Client();
     $endpoint = Endpoints::get('check_editor_article_status');
-    
+
     if (!$endpoint) {
       return rest_ensure_response([
         'success' => false,
@@ -179,19 +182,17 @@ class PostEditorController {
     }
 
     Logger::debug("Проверка статуса генерации для поста ID: $post_id");
-    
+
     // Получаем job_id из meta, если есть
     $job_id = get_post_meta($post_id, '_cf_generation_job_id', true);
-    
+
     // Формируем параметры запроса
     $query_params = ['post_id' => $post_id];
     if (!empty($job_id)) {
       $query_params['job_id'] = $job_id;
     }
-    
-    $url = $endpoint . '?' . http_build_query($query_params);
-    
-    $response = $client->get($url);
+
+    $response = $client->get($endpoint, $query_params);
 
     if (is_wp_error($response)) {
       Logger::error('Ошибка проверки статуса: ' . $response->get_error_message());
@@ -202,7 +203,7 @@ class PostEditorController {
     }
 
     Logger::debug('Статус получен', $response);
-    
+
     // Если N8N вернул массив, берём первый элемент
     if (is_array($response) && isset($response[0]) && is_array($response[0])) {
       Logger::debug('Response is array, taking first element');
@@ -212,20 +213,20 @@ class PostEditorController {
     // Если статья готова, обновляем пост
     if (isset($response['status']) && $response['status'] === 'completed') {
       Logger::debug('Status: COMPLETED');
-      
+
       if (!empty($response['content'])) {
         Logger::debug('Content length: ' . strlen($response['content']));
-        
+
         PostPublisher::update_post_content(
           $post_id,
           $response['content'],
           $response['title'] ?? null
         );
-        
+
         // Обновляем meta
         update_post_meta($post_id, '_cf_generation_status', 'completed');
         update_post_meta($post_id, '_cf_generation_completed_at', current_time('mysql'));
-        
+
         Logger::debug('Контент поста обновлен в БД');
       } else {
         Logger::error('Content is empty!');
@@ -248,14 +249,15 @@ class PostEditorController {
   /**
    * Проверка прав доступа
    */
-  public static function check_permission($request) {
+  public static function check_permission($request)
+  {
     $post_id = $request->get_param('id');
-    
+
     // Проверяем, что пользователь может редактировать этот пост
     if (!empty($post_id)) {
       return current_user_can('edit_post', $post_id);
     }
-    
+
     return current_user_can('edit_posts');
   }
 }
