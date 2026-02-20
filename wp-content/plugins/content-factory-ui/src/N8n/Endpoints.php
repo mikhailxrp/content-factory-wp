@@ -10,8 +10,8 @@ use ContentFactoryUI\Settings\SettingsRepository;
 class Endpoints
 {
   private static $endpoints = [
-    'generate_senses' => '/webhook-test/generate-senses',
-    'generate_topics' => '/webhook/generate-topics',
+    'generate_senses' => '/webhook/generate-senses',
+    'generate_topics' => '/webhook-test/generate-topics',
     'update_topics' => '/webhook/update-topics',
     'list_topics' => '/webhook/topics/list',
     'get_topic' => '/webhook/topics/get',
