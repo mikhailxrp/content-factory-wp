@@ -11,8 +11,8 @@ class Endpoints
 {
   private static $endpoints = [
     'generate_senses' => '/webhook/generate-senses',
-    'generate_topics' => '/webhook-test/generate-topics',
-    'update_topics' => '/webhook/update-topics',
+    'generate_topics' => '/webhook/generate-topics',
+    'update_topics' => '/webhook-test/update-topics',
     'list_topics' => '/webhook/topics/list',
     'get_topic' => '/webhook/topics/get',
     'update_topic' => '/webhook/topics/update-one',
